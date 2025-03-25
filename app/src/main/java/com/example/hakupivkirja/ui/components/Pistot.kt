@@ -17,7 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun PistoVasen() {
+fun PistoVasen(
+    haukutList: List<String>,
+    index: Int,
+    pistojenMaara: Int,
+    onHaukutListChange: (List<String>) -> Unit
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -32,7 +37,7 @@ fun PistoVasen() {
                 if ((index+pistojenMaara) < haukutList.size) {
                     val newList = haukutList.toMutableList()
                     newList[index + pistojenMaara] = newValue
-                    haukutList = newList.toList()
+                    onHaukutListChange(newList.toList())
                 }
             },
             keyboardOptions = KeyboardOptions(
@@ -44,3 +49,38 @@ fun PistoVasen() {
         )
     }
 }
+
+@Composable
+fun PistoOikea(
+    haukutList: List<String>,
+    index: Int,
+    pistojenMaara: Int,
+    onHaukutListChange: (List<String>) -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            AvutDropdown()
+            PalkkaDropdown()
+        }
+        OutlinedTextField(
+            value = haukutList.getOrElse(pistojenMaara - 1 - index) { "" },
+            onValueChange = { newValue ->
+                if ((pistojenMaara - 1 - index) < haukutList.size) {
+                    val newList = haukutList.toMutableList()
+                    newList[pistojenMaara - 1 - index] = newValue
+                    onHaukutListChange(newList.toList())
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Next
+            ),
+            label = { Text("Haukut", fontSize = 11.sp) },
+            modifier = Modifier.width(75.dp),
+        )
+    }
+}
+
