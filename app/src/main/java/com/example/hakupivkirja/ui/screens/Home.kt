@@ -11,19 +11,20 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
-import com.example.hakupivkirja.ui.components.Rata
+import com.example.hakupivkirja.ui.components.UusiRata
 import com.example.hakupivkirja.ui.components.Valintarivi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen() {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    var pistojenMaara by remember { mutableIntStateOf(1)  } // State managed at the parent level
+    var pistojenMaara by remember { mutableIntStateOf(3
+    )  } // State managed at the parent level
 
     Column {
         Valintarivi(selectedPistot = pistojenMaara,
             onSelectedPistotChange = { pistojenMaara = it }  )
         HorizontalDivider(thickness = 2.dp)
-        Rata(pistojenMaara)
+        UusiRata(pistojenMaara)
     }
 }

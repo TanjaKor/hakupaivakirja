@@ -17,10 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun PistoVasen(
+fun Pisto(
     haukutList: List<String>,
     index: Int,
-    pistojenMaara: Int,
     onHaukutListChange: (List<String>) -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -32,11 +31,11 @@ fun PistoVasen(
             PalkkaDropdown()
         }
         OutlinedTextField(
-            value = haukutList.getOrElse(index + pistojenMaara) { "" },
+            value = haukutList.getOrElse(index) { "" },
             onValueChange = { newValue ->
-                if ((index+pistojenMaara) < haukutList.size) {
+                if (index < haukutList.size) {
                     val newList = haukutList.toMutableList()
-                    newList[index + pistojenMaara] = newValue
+                    newList[index] = newValue
                     onHaukutListChange(newList.toList())
                 }
             },
@@ -66,11 +65,11 @@ fun PistoOikea(
             PalkkaDropdown()
         }
         OutlinedTextField(
-            value = haukutList.getOrElse(pistojenMaara - 1 - index) { "" },
+            value = haukutList.getOrElse(index) { "" },
             onValueChange = { newValue ->
-                if ((pistojenMaara - 1 - index) < haukutList.size) {
+                if (index < haukutList.size) {
                     val newList = haukutList.toMutableList()
-                    newList[pistojenMaara - 1 - index] = newValue
+                    newList[index] = newValue
                     onHaukutListChange(newList.toList())
                 }
             },

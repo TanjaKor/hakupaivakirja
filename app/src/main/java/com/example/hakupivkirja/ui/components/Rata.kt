@@ -2,13 +2,12 @@ package com.example.hakupivkirja.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,83 +16,113 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.hakupivkirja.ui.screens.HomeScreen
+import com.example.hakupivkirja.model.PistoState
 import com.example.hakupivkirja.ui.theme.HakupäiväkirjaTheme
+import kotlin.math.ceil
 
 @Composable
-fun Rata(pistojenMaara: Int) {
-    val pistoIndex = List(pistojenMaara) { "${it + 1}" }
-    var haukutList by remember { mutableStateOf(List(pistojenMaara *2 ) { "" }) }
-    var
-
-    LaunchedEffect(pistojenMaara) {
-        haukutList = List(pistojenMaara * 2) { "" }
+fun UusiRata(pistojenMaara: Int) {
+    println("Rata - pistojenMaara initial value: $pistojenMaara")
+    var pistoStateList by remember(pistojenMaara) {
+        mutableStateOf(List(pistojenMaara) { PistoState.Default })
     }
 
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-    //mietittävä vielä miten pistot numeroidaan -> oisko järkevämpi tehdä yksi lazycolumn
-    //johon rivissä kaksi pistoa vierekkäin?
-        //vasemmat pistot
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
-        ) {
-            itemsIndexed(pistoIndex) { index, _ ->
-                val actualPistoNumber = pistojenMaara * 2 - index
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(text = "$actualPistoNumber", fontSize = 14.sp)
-                    Row {
-                        TextButton(onClick = { /*TODO*/ }) {
-                            Text(text = "Tyhjä")
-                        }
-                        TextButton(onClick = { /*TODO*/ }) {
-                            Text(text = "MM")
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        reverseLayout = true,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        //varmistetaan, että jakolaskun tulokseksi tulee kokonaisluku
+        items(count = ceil(pistojenMaara / 2.0).toInt()) { rowIndex ->
+            Row( //Rivi kahdelle vierekkäiselle pistolle
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                val leftPistoIndex = rowIndex * 2+2 //vas. pistonro + apu, ettei pistoje tule liikaa
+                val rightPistoIndex = leftPistoIndex -1 //oikean puoleinen pistonro
+
+                if (leftPistoIndex <= pistojenMaara) { //renderöidään vain niin monta kuin pistoja
+                    Row(
+                        horizontalArrangement = Arrangement.End
+                    ) { //vas piston sisältö
+                        Text(leftPistoIndex.toString()) // pistonro
+                        when (pistoStateList[leftPistoIndex -1]) {
+                            PistoState.MM -> {
+                                Text("MM")
+                            }
+
+                            PistoState.Tyhja -> {
+                                Text(text = "")
+                            }
+
+                            PistoState.Default -> {
+                                Row {
+                                    TextButton(onClick = {
+                                        val newList = pistoStateList.toMutableList()
+                                        newList[leftPistoIndex -1] = PistoState.Tyhja
+                                        pistoStateList = newList.toList()
+                                    }) {
+                                        Text(text = "Tyhjä")
+                                    }
+                                    TextButton(onClick = {
+                                        val newList = pistoStateList.toMutableList()
+                                        newList[leftPistoIndex-1] = PistoState.MM
+                                        pistoStateList = newList.toList()
+                                    }) {
+                                        Text(text = "MM")
+                                    }
+                                }
+                            }
                         }
                     }
-//                    PistoVasen(
-//                        haukutList = haukutList,
-//                        index = index,
-//                        pistojenMaara = pistojenMaara,
-//                        onHaukutListChange = { newList -> haukutList = newList}
-//                    )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
-            }
-        }
-        //oikeat pistot
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f)
-        ) {
-            itemsIndexed(pistoIndex) { index, _ ->
-                val actualPistoNumber = pistojenMaara - index
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(text = "$actualPistoNumber", fontSize = 14.sp)
-                    PistoOikea(
-                        haukutList = haukutList,
-                        index = index,
-                        pistojenMaara = pistojenMaara,
-                        onHaukutListChange = { newList -> haukutList = newList}
-                    )
+                if (rightPistoIndex <= pistojenMaara) {
+                    Row { //oikeanpuoleisen piston sisältö
+                        Text(text = rightPistoIndex.toString())
+                        when (pistoStateList[rightPistoIndex-1]) {
+                            PistoState.MM -> {
+                                Text("MM")
+                            }
+
+                            PistoState.Tyhja -> {
+                                Text(text = "")
+                            }
+
+                            PistoState.Default -> {
+                                Row {
+                                    TextButton(onClick = {
+                                        val newList = pistoStateList.toMutableList()
+                                        newList[rightPistoIndex-1] = PistoState.Tyhja
+                                        pistoStateList = newList.toList()
+                                    }) {
+                                        Text(text = "Tyhjä")
+                                    }
+                                    TextButton(onClick = {
+                                        val newList = pistoStateList.toMutableList()
+                                        newList[rightPistoIndex-1] = PistoState.MM
+                                        pistoStateList = newList.toList()
+                                    }) {
+                                        Text(text = "MM")
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun RataPreview() {
     HakupäiväkirjaTheme {
-        HomeScreen()
+        UusiRata(pistojenMaara = 11
+        )
     }
 }
