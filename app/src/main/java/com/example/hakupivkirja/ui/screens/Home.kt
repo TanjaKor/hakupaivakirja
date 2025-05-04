@@ -26,5 +26,6 @@ fun HomeScreen() {
             onSelectedPistotChange = { pistojenMaara = it }  )
         HorizontalDivider(thickness = 2.dp)
         UusiRata(pistojenMaara)
+        //ClaudenRata(pistojenMaara)
     }
 }

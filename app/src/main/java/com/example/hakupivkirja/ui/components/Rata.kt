@@ -1,5 +1,6 @@
 package com.example.hakupivkirja.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -23,9 +25,12 @@ import kotlin.math.ceil
 @Composable
 fun UusiRata(pistojenMaara: Int) {
     println("Rata - pistojenMaara initial value: $pistojenMaara")
-    var pistoStateList by remember(pistojenMaara) {
-        mutableStateOf(List(pistojenMaara) { PistoState.Default })
+    val pistoStateList = remember(pistojenMaara) {
+        mutableStateListOf<PistoState>().apply {
+            repeat(pistojenMaara) { add(PistoState.Default) }
+        }
     }
+    var haukutList by remember { mutableStateOf(List(pistojenMaara) { "" }) }
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -40,36 +45,41 @@ fun UusiRata(pistojenMaara: Int) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val leftPistoIndex = rowIndex * 2+2 //vas. pistonro + apu, ettei pistoje tule liikaa
-                val rightPistoIndex = leftPistoIndex -1 //oikean puoleinen pistonro
+                val leftPistoNumber = rowIndex * 2+2 //vas. pistonro + apu, ettei pistoja tule liikaa
+                val leftPistoIndex = leftPistoNumber - 1 //vas puoleisen piston index
 
-                if (leftPistoIndex <= pistojenMaara) { //renderöidään vain niin monta kuin pistoja
+                val rightPistoNumber = leftPistoNumber -1 //oikean puoleinen pistonro
+                val rightPistoIndex = rightPistoNumber - 1 //oikean puoleisen piston index
+
+                if (leftPistoIndex >= 0 && leftPistoIndex < pistojenMaara) { //renderöidään vain niin monta kuin pistoja
                     Row(
                         horizontalArrangement = Arrangement.End
                     ) { //vas piston sisältö
-                        Text(leftPistoIndex.toString()) // pistonro
-                        when (pistoStateList[leftPistoIndex -1]) {
+                        Text(leftPistoNumber.toString()) // pistonro
+                        when (pistoStateList[leftPistoIndex]) {
                             PistoState.MM -> {
-                                Text("MM")
+                                Pisto(haukutList,leftPistoIndex) { }
                             }
 
                             PistoState.Tyhja -> {
-                                Text(text = "")
+                                Text(text = "Tyhjä")
                             }
 
                             PistoState.Default -> {
                                 Row {
                                     TextButton(onClick = {
-                                        val newList = pistoStateList.toMutableList()
-                                        newList[leftPistoIndex -1] = PistoState.Tyhja
-                                        pistoStateList = newList.toList()
+                                        pistoStateList[leftPistoIndex] = PistoState.Tyhja
+                                        Log.d("UusiRata", "pistoStateList: $pistoStateList")
+                                        Log.d("UusiRata", "leftPistoIndex: $leftPistoIndex")
+                                        Log.d("UusiRata", "rowindex: $rowIndex")
                                     }) {
                                         Text(text = "Tyhjä")
                                     }
                                     TextButton(onClick = {
-                                        val newList = pistoStateList.toMutableList()
-                                        newList[leftPistoIndex-1] = PistoState.MM
-                                        pistoStateList = newList.toList()
+                                        pistoStateList[leftPistoIndex] = PistoState.MM
+                                        Log.d("UusiRata", "pistoStateList: $pistoStateList")
+                                        Log.d("UusiRata", "leftPistoIndex: $leftPistoIndex")
+                                        Log.d("UusiRata", "rowindex: $rowIndex")
                                     }) {
                                         Text(text = "MM")
                                     }
@@ -80,31 +90,33 @@ fun UusiRata(pistojenMaara: Int) {
                 } else {
                     Spacer(modifier = Modifier.weight(1f))
                 }
-                if (rightPistoIndex <= pistojenMaara) {
+                if (rightPistoIndex >= 0 && rightPistoIndex < pistojenMaara) {
                     Row { //oikeanpuoleisen piston sisältö
-                        Text(text = rightPistoIndex.toString())
-                        when (pistoStateList[rightPistoIndex-1]) {
+                        Text(text = rightPistoNumber.toString())
+                        when (pistoStateList[rightPistoIndex]) {
                             PistoState.MM -> {
-                                Text("MM")
+                                Pisto(haukutList,leftPistoIndex) { }
                             }
 
                             PistoState.Tyhja -> {
-                                Text(text = "")
+                                Text(text = "Tyhjä")
                             }
 
                             PistoState.Default -> {
                                 Row {
                                     TextButton(onClick = {
-                                        val newList = pistoStateList.toMutableList()
-                                        newList[rightPistoIndex-1] = PistoState.Tyhja
-                                        pistoStateList = newList.toList()
+                                        pistoStateList[rightPistoIndex] = PistoState.Tyhja
+                                        Log.d("UusiRata", "pistoStateList: $pistoStateList")
+                                        Log.d("UusiRata", "rightPistoIndex: $rightPistoIndex")
+                                        Log.d("UusiRata", "rowindex: $rowIndex")
                                     }) {
                                         Text(text = "Tyhjä")
                                     }
                                     TextButton(onClick = {
-                                        val newList = pistoStateList.toMutableList()
-                                        newList[rightPistoIndex-1] = PistoState.MM
-                                        pistoStateList = newList.toList()
+                                        pistoStateList[rightPistoIndex] = PistoState.MM
+                                        Log.d("UusiRata", "pistoStateList: $pistoStateList")
+                                        Log.d("UusiRata", "rightPistoIndex: $rightPistoIndex")
+                                        Log.d("UusiRata", "rowindex: $rowIndex")
                                     }) {
                                         Text(text = "MM")
                                     }
@@ -122,7 +134,7 @@ fun UusiRata(pistojenMaara: Int) {
 @Composable
 fun RataPreview() {
     HakupäiväkirjaTheme {
-        UusiRata(pistojenMaara = 11
+        UusiRata(pistojenMaara = 4
         )
     }
 }
