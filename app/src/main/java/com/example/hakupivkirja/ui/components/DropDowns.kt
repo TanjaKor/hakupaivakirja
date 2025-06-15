@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -85,7 +86,7 @@ fun PistojenMaaraDropdown(maxPistot: Int, onSelectedPistotChange: (Int) -> Unit)
         onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
-            value = selectedPistot.toString(),
+            value = selectedPistot,
             onValueChange = {},
             readOnly = true,
             label = { Text("Pistot") },
@@ -116,20 +117,22 @@ fun PistojenMaaraDropdown(maxPistot: Int, onSelectedPistotChange: (Int) -> Unit)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AvutDropdown() {
+fun AvutDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     // List of SVG icons (drawables) and their corresponding text labels
     val menuItemData = listOf(
-        Pair(R.drawable.ghost_solid, "Haamu"),  // Icon and text
-        Pair(R.drawable.bunny, "Pupu"),
-        Pair(R.drawable.run, "Näkö"),
-        Pair(R.drawable.voice, "Ääni"),
-        Pair(R.drawable.ready, "Valmis")
-    )
+            Pair(R.drawable.ghost_solid, "Haamu"),
+            Pair(R.drawable.bunny, "Pupu"),
+            Pair(R.drawable.run, "Näkö"),
+            Pair(R.drawable.voice, "Ääni"),
+            Pair(R.drawable.ready, "Valmis")
+        )
 
-    // Store the selected text option
-    var selectedIcon by remember { mutableStateOf<Int?>(null) } // default to the first item
+
+    val currentIconResId = remember(selectedText, menuItemData) {
+        menuItemData.find { it.second == selectedText }?.first
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -143,10 +146,13 @@ fun AvutDropdown() {
             label = { Text("Avut", fontSize = 11.sp) },
             leadingIcon = {
                 // Only show the icon if something is selected
-                selectedIcon?.let {
-                    val iconPainter = painterResource(id = it)
+                currentIconResId?.let { iconRes ->
+                    val iconPainter = painterResource(id = iconRes)
                     Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
                 }
+            },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
             modifier = Modifier
                 .menuAnchor()
@@ -161,7 +167,7 @@ fun AvutDropdown() {
             modifier = Modifier.width(150.dp)
         ) {
             // Loop through menuItemData to display each dropdown item
-            menuItemData.forEach { (iconResId, text) ->
+            menuItemData.forEach { (iconResId, textValue) ->
                 DropdownMenuItem(
                     modifier = Modifier
                         .padding(8.dp),  // Add padding for better spacing,
@@ -176,7 +182,7 @@ fun AvutDropdown() {
                             Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = text,
+                                text = textValue,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)
@@ -185,7 +191,7 @@ fun AvutDropdown() {
                     },
                     onClick = {
                         // Update selected option with the text (not the drawable resource)
-                        selectedIcon = iconResId
+                        onSelectedValueChange(textValue)
                         expanded = false
                     }
                 )
@@ -196,77 +202,84 @@ fun AvutDropdown() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PalkkaDropdown() {
+fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     // List of SVG icons (drawables) and their corresponding text labels
-    val menuItemData = listOf(
+    val menuItemData =
+        listOf(
         Pair(R.drawable.bone_solid, "Ruoka"),  // Icon and text
         Pair(R.drawable.ball, "Lelu"),
-    )
+        )
 
-    // Store the selected text option
-    var selectedIcon by remember { mutableStateOf<Int?>(null) } // default to the first item
+
+    val selectedIconResId = remember(selectedText, menuItemData) {
+        menuItemData.find { it.second == selectedText }?.first
+    }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it }
     ) {
-        // OutlinedTextField to show the selected text option
-        OutlinedTextField(
-            value = " ",
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Palkka", fontSize = 11.sp) },
-            leadingIcon = {
-                // Only show the icon if something is selected
-                selectedIcon?.let {
-                    val iconPainter = painterResource(id = it)
-                    Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
-                }
-            },
-            modifier = Modifier
-                .menuAnchor()
-                .width(80.dp) // Adjust width of the dropdown trigger
-                .height(56.dp)
-                .padding(4.dp)
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.width(150.dp)
-        ) {
-            // Loop through menuItemData to display each dropdown item
-            menuItemData.forEach { (iconResId, text) ->
-                DropdownMenuItem(
-                    modifier = Modifier
-                        .padding(8.dp),  // Add padding for better spacing,
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            // Load the SVG as a painter
-                            val iconPainter = painterResource(id = iconResId)
-                            Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = text,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    },
-                    onClick = {
-                        // Update selected option with the text (not the drawable resource)
-                        selectedIcon = iconResId
-                        expanded = false
+            // OutlinedTextField as a trigger for dropdown
+            OutlinedTextField(
+                value = " ",
+                onValueChange = {},
+                readOnly = true, //value is not directly edited
+                label = { Text("Palkka", fontSize = 11.sp) },
+                leadingIcon = {
+                    // Only show the icon if something is selected
+                    selectedIconResId?.let { iconRes ->
+                        val iconPainter = painterResource(id = iconRes)
+                        Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
                     }
-                )
+                },
+                // Add a trailing icon to indicate it's a dropdown
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier
+                    .menuAnchor()
+                    .width(76.dp) // Adjust width of the dropdown trigger
+                    .height(56.dp)
+                    .padding(4.dp)
+            )
+            // The dropdown menu itself,
+            // Loop through menuItemData to display each dropdown item
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.width(150.dp)
+            ) {
+                menuItemData.forEach { (iconResId, text) ->
+                    DropdownMenuItem(
+                        modifier = Modifier
+                            .padding(8.dp),  // Add padding for better spacing,
+                        text = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                // Load the SVG as a painter
+                                val iconPainter = painterResource(id = iconResId)
+                                Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = text,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        },
+                        onClick = {
+                            // Update selected option with the text (not the drawable resource
+                            onSelectedValueChange(text)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
-}

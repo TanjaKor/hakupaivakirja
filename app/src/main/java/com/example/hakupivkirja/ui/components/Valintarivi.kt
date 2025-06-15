@@ -18,9 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Valintarivi(selectedPistot: Int, onSelectedPistotChange: (Int) -> Unit, modifier: Modifier = Modifier) {
+fun Valintarivi(
+    pistotMax: Int,
+    selectedPistot: Int,
+    onMaxPistotChange: (Int) -> Unit,
+    onSelectedPistotChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var selectedDate by remember { mutableStateOf<Long?>(null) }
-    var pistotMax by remember { mutableStateOf(3) }
     var text by remember { mutableStateOf("Treenisuunnitelma lyhyesti") }
 
     Column(
@@ -34,9 +39,8 @@ fun Valintarivi(selectedPistot: Int, onSelectedPistotChange: (Int) -> Unit, modi
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             DatePickerFieldToModal()
-            RadanPituusDropdown(onMaxPistotChange = { pistotMax = it })
-            PistojenMaaraDropdown(maxPistot = pistotMax,  // Pass maxPistot to PistojenMaaraDropdown
-                onSelectedPistotChange = { onSelectedPistotChange(it) })
+            RadanPituusDropdown(onMaxPistotChange = onMaxPistotChange)
+            PistojenMaaraDropdown(maxPistot = pistotMax, onSelectedPistotChange = onSelectedPistotChange)
             Button(
                 onClick = { /*TODO*/ },
             ) {
