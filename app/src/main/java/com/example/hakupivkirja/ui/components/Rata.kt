@@ -3,11 +3,11 @@ package com.example.hakupivkirja.ui.components
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -20,7 +20,7 @@ import com.example.hakupivkirja.model.PistoUiState
 import com.example.hakupivkirja.model.TrainingSessionUiState
 import com.example.hakupivkirja.ui.theme.HakupäiväkirjaTheme
 import kotlin.math.ceil
-//SEURAAVA VAIHE ON TESTATA SAAKO APU JA PALKKA IKONIT NÄKYVIIN! SEN JÄLKEEN VASTA KOKO APPIN TESTAUS
+
 @Composable
 fun UusiRata(
     uiState: TrainingSessionUiState,
@@ -30,14 +30,15 @@ fun UusiRata(
     val selectedPistot = uiState.selectedPistot
     println("Rata - pistojenMaara initial value: $selectedPistot")
 
-    LazyColumn(
+    Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        reverseLayout = true,
         modifier = Modifier.fillMaxWidth().padding(20.dp)
     ) {
         //varmistetaan, että jakolaskun tulokseksi tulee kokonaisluku
-        items(count = ceil(selectedPistot  / 2.0).toInt()) { rowIndex ->
+        val rowCount = ceil(selectedPistot  / 2.0).toInt()
+        //loopataan takaperin, että pistojen järjestys on oikea
+        for (rowIndex in (rowCount - 1) downTo 0) {
             Row( //Rivi kahdelle vierekkäiselle pistolle
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().height(125.dp)
@@ -78,7 +79,7 @@ fun UusiRata(
                             }
 
                             PistoMode.TYHJA -> {
-                                Text(text = "Tyhjä")
+                                Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp))
                             }
 
                             PistoMode.DEFAULT -> {
@@ -136,7 +137,7 @@ fun UusiRata(
                            }
 
                             PistoMode.TYHJA -> {
-                                Text(text = "Tyhjä")
+                                Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp))
                             }
 
                             PistoMode.DEFAULT -> {
@@ -171,7 +172,7 @@ fun UusiRata(
 fun UusiRataPreview2Pistot() {
     HakupäiväkirjaTheme {
         val mockUiState = TrainingSessionUiState(
-            selectedPistot = 2,
+            selectedPistot = 3,
             maxPistot = 6,
             pistoStates = mapOf(
                 0 to PistoUiState(
@@ -185,7 +186,15 @@ fun UusiRataPreview2Pistot() {
                     haukut = "5",
                     avut = "Pupu",
                     palkka = "Lelu",
-                    selectedPistot = 2
+                    selectedPistot = 3
+                ),
+                2 to PistoUiState(
+                    pistoIndex = 1,
+                    currentMode = PistoMode.MM,
+                    haukut = "5",
+                    avut = "Pupu",
+                    palkka = "Lelu",
+                    selectedPistot = 3
                 )
             )
         )

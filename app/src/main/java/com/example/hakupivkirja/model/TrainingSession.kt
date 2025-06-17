@@ -9,8 +9,8 @@ data class TrainingSession(
   @PrimaryKey(autoGenerate = true)
   val id: Long = 0,
   val dateMillis: Long?, // Store date as Long (nullable to match your composable)
-  val shortDescription: String,
-  val dogName: String,
+  val shortDescription: String?, // short description of the track when planning
+  val dogName: String?,
   val alarmType: String? = null, // e.g., "Bark", "Roll"
   val notes: String? = null, // Notes after the training
   val overallRating: Int? = null, // 5-point star classification for overall training

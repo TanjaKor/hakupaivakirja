@@ -1,6 +1,9 @@
 package com.example.hakupivkirja.ui.screens
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.TopAppBarDefaults
@@ -9,11 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hakupivkirja.ui.components.UusiRata
 import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
+
+//NEXTSTEP: TIETOKANTA: TARKISTA TAULUT JA YHDISTÄ TIETOKANTA
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,6 +27,7 @@ fun HomeScreen(
     trainingSessionViewModel: TrainingSessionViewModel = viewModel()
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    
     //tarkastellaan uiState:n muutoksia
     val uiState by trainingSessionViewModel.uiState.collectAsState()
 
@@ -31,8 +38,11 @@ fun HomeScreen(
         }
     }
 
-
-    Column {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()) // This will now scroll everything
+    ) {
         Valintarivi(
             selectedPistot = uiState.selectedPistot,
             pistotMax = uiState.maxPistot,

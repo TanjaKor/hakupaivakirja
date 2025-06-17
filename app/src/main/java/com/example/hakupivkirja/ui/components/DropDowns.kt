@@ -157,7 +157,7 @@ fun AvutDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit) 
             modifier = Modifier
                 .menuAnchor()
                 .width(65.dp) // Adjust width of the dropdown trigger
-                .height(56.dp)
+                .height(65.dp)
                 .padding(4.dp)
         )
 
@@ -241,7 +241,7 @@ fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit
                 modifier = Modifier
                     .menuAnchor()
                     .width(76.dp) // Adjust width of the dropdown trigger
-                    .height(56.dp)
+                    .height(65.dp)
                     .padding(4.dp)
             )
             // The dropdown menu itself,

@@ -37,41 +37,11 @@ class TrainingSessionViewModel : ViewModel() {
     }
   }
 
-  fun initializePistoStates(pistotCount: Int) {
-    _uiState.update { currentState ->
-      val newPistoStates = mutableMapOf<Int, PistoUiState>()
-
-      repeat(pistotCount) { index ->
-        newPistoStates[index] = PistoUiState(
-          pistoIndex = index,
-          currentMode = PistoMode.DEFAULT,
-          haukut = "",
-          avut = "",
-          palkka = "",
-          suoraPalkka = false,
-          kiintoRulla = false,
-          irtorullanSijainti = "",
-          isClosed = false,
-          haukutError = null,
-          isSaving = false,
-          selectedPistot = pistotCount
-        )
-      }
-
-      currentState.copy(
-        pistoStates = newPistoStates,
-        totalPistoCount = pistotCount,
-        selectedPistot = pistotCount
-      )
-    }
-  }
-
   fun updateTrainingSession(trainingSession: TrainingSession) {
     _uiState.update { currentState ->
       currentState.copy(currentTrainingSession = trainingSession)
     }
   }
-
 
   fun updateSelectedPistot(newPistot: Int) {
     _uiState.update { currentState ->
@@ -89,16 +59,6 @@ class TrainingSessionViewModel : ViewModel() {
     }
   }
 
-    // Update a specific pisto's state
-  fun updatePistoState(pistoIndex: Int, updatedState: PistoUiState) {
-    _uiState.update { currentState ->
-      val updatedPistos = currentState.pistoStates.toMutableMap()
-      updatedPistos[pistoIndex] = updatedState
-
-      currentState.copy(pistoStates = updatedPistos)
-    }
-  }
-
   // Update pisto mode (DEFAULT, TYHJA, MM)
   fun updatePistoMode(pistoIndex: Int, mode: PistoMode) {
     _uiState.update { currentState ->
@@ -108,7 +68,7 @@ class TrainingSessionViewModel : ViewModel() {
       // The new PistoUiState will use its default values for properties other than pistoIndex and currentMode.
       // The selectedPistot from the PistoUiState's default will be used if creating a new one.
       val currentPisto = updatedPistos[pistoIndex]
-        ?: PistoUiState(pistoIndex = pistoIndex, selectedPistot = currentState.selectedPistot) // Or use PistoUiState's default for selectedPistot if that's intended for brand new pistos
+        ?: PistoUiState(pistoIndex = pistoIndex, selectedPistot = currentState.selectedPistot)
 
       // Update the mode and put it back in the map
       updatedPistos[pistoIndex] = currentPisto.copy(currentMode = mode)
@@ -126,18 +86,6 @@ class TrainingSessionViewModel : ViewModel() {
         avut = avut,
         palkka = palkka
       )
-      val updatedPistos = currentState.pistoStates.toMutableMap()
-      updatedPistos[pistoIndex] = updatedPisto
-
-      currentState.copy(pistoStates = updatedPistos)
-    }
-  }
-
-  // Update bark amount for a specific pisto
-  fun updateBarkAmount(pistoIndex: Int, haukkujenMaara: String?) {
-    _uiState.update { currentState ->
-      val currentPisto = currentState.pistoStates[pistoIndex] ?: return@update currentState
-      val updatedPisto = currentPisto.copy(haukut = haukkujenMaara)
       val updatedPistos = currentState.pistoStates.toMutableMap()
       updatedPistos[pistoIndex] = updatedPisto
 
@@ -221,6 +169,8 @@ class TrainingSessionViewModel : ViewModel() {
           PistoMode.TYHJA -> "Tyhja"
           PistoMode.MM -> "MM"
         },
+        help = uiState.avut ?: "",
+        praise = uiState.palkka ?: "",
         barkAmount = uiState.haukut?.toIntOrNull(),
         decoyPraisesDirectly = uiState.suoraPalkka,
         isRollSolid = uiState.kiintoRulla,

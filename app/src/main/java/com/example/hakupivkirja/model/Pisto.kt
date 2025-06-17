@@ -9,7 +9,9 @@ data class PistoStateEntity(
   val id: Long = 0,
   val trackId: Long, // Foreign key to TrainingSession
   val pistoIndex: Int, // Index of the pisto in the track
-  val type: String, // To store the type: "Default", "Tyhja", "MM"
+  val type: String, // "Default", "Tyhja", "MM"
+  val help: String?, // Use String for UI input, convert to Int for database
+  val praise: String?, // Use String for UI input, convert to Int for database
   // Fields for Bark alarm type (nullable)
   val barkAmount: Int? = null,
   // Fields for Roll alarm type (nullable)

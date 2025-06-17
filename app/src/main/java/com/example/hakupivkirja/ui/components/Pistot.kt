@@ -24,10 +24,10 @@ fun Pisto(pistoUiState: PistoUiState,
           onPalkkaChange: (String) -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top,
     ) {
         Row(
-            modifier = Modifier.weight(1f).height(100.dp),
+            modifier = Modifier.weight(1f).height(120.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Top
         ) {
@@ -55,7 +55,7 @@ fun Pisto(pistoUiState: PistoUiState,
                 imeAction = ImeAction.Next
             ),
             label = { Text("Hau", fontSize = 11.sp) },
-            modifier = Modifier.width(80.dp).height(56.dp),
+            modifier = Modifier.width(80.dp).height(60.dp),
         )
     }
 }
