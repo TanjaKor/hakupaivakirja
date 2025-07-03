@@ -1,9 +1,21 @@
 package com.example.hakupivkirja.model
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "weather_conditions")
+@Entity(
+  tableName = "weather_conditions",
+  foreignKeys = [
+    ForeignKey(
+      entity = TrainingSession::class,
+      parentColumns = ["id"],
+      childColumns = ["trainingSessionId"],
+      onDelete = ForeignKey.CASCADE,
+      onUpdate = ForeignKey.CASCADE
+    )
+  ]
+)
 data class Weather(
   @PrimaryKey(autoGenerate = true)
   val id: Long = 0,

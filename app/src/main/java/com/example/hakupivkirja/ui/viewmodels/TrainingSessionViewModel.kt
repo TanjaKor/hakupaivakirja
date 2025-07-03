@@ -1,20 +1,39 @@
 package com.example.hakupivkirja.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.hakupivkirja.model.PistoMode
 import com.example.hakupivkirja.model.PistoStateEntity
 import com.example.hakupivkirja.model.PistoUiState
+import com.example.hakupivkirja.model.TrackEntity
 import com.example.hakupivkirja.model.TrainingSession
 import com.example.hakupivkirja.model.TrainingSessionUiState
+import com.example.hakupivkirja.model.repository.HakupivkirjaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class TrainingSessionViewModel : ViewModel() {
+class TrainingSessionViewModel(
+  private val repository: HakupivkirjaRepository
+) : ViewModel() {
 
+  val allTrainingSessions = repository.getAllTrainingSessions()
   private val _uiState = MutableStateFlow(TrainingSessionUiState())
   val uiState: StateFlow<TrainingSessionUiState> = _uiState.asStateFlow()
+
+  fun insertTrainingSession(session: TrainingSession) {
+    viewModelScope.launch {
+      repository.insertTrainingSession(session)
+    }
+  }
+
+  fun saveTrackWithPistoStates(track: TrackEntity, pistoStates: List<PistoStateEntity>) {
+    viewModelScope.launch {
+      repository.saveTrackWithPistoStates(track, pistoStates)
+    }
+  }
 
   fun initializeEmptyTrainingSession() {
     _uiState.update { currentState ->

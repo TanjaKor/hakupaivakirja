@@ -14,17 +14,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hakupivkirja.ui.components.UusiRata
 import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
-//NEXTSTEP: TIETOKANTA: TARKISTA TAULUT JA YHDISTÄ TIETOKANTA
+//NEXTSTEP: Tietokanta yhdistetty, seuraavaksi kirjaa- nappula toimintaan -> testi että kulkee tieto
+// -> loput ui:sta (sisääntulon lisäys, piston moden vaihtaminen (x, jolla menee takaisin default tilaan),
+// treenin kuvauksen ym tietojen (valintapalkin) tietojen tallentaminen.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    trainingSessionViewModel: TrainingSessionViewModel = viewModel()
+    trainingSessionViewModel: TrainingSessionViewModel
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     
