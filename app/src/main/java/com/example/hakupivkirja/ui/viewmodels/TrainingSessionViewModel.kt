@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.hakupivkirja.model.PistoMode
 import com.example.hakupivkirja.model.PistoStateEntity
 import com.example.hakupivkirja.model.PistoUiState
-import com.example.hakupivkirja.model.TrackEntity
 import com.example.hakupivkirja.model.TrainingSession
 import com.example.hakupivkirja.model.TrainingSessionUiState
 import com.example.hakupivkirja.model.repository.HakupivkirjaRepository
@@ -19,25 +18,39 @@ class TrainingSessionViewModel(
   private val repository: HakupivkirjaRepository
 ) : ViewModel() {
 
-  val allTrainingSessions = repository.getAllTrainingSessions()
   private val _uiState = MutableStateFlow(TrainingSessionUiState())
   val uiState: StateFlow<TrainingSessionUiState> = _uiState.asStateFlow()
 
-  fun insertTrainingSession(session: TrainingSession) {
+  init {
+    initializeEmptyTrainingSession()
+  }
+
+  // Save training session with pisto states to database
+  fun saveTrainingSession() {
     viewModelScope.launch {
-      repository.insertTrainingSession(session)
+      try {
+        setSaving(true)
+        setError(null)
+
+        val session = _uiState.value.currentTrainingSession
+        val pistoStates = convertToEntityStates()
+
+        if (session != null) {
+          repository.saveTrainingSession(session, pistoStates)
+        }
+
+      } catch (e: Exception) {
+        setError("Failed to save training session: ${e.message}")
+      } finally {
+        setSaving(false)
+      }
     }
   }
 
-  fun saveTrackWithPistoStates(track: TrackEntity, pistoStates: List<PistoStateEntity>) {
-    viewModelScope.launch {
-      repository.saveTrackWithPistoStates(track, pistoStates)
-    }
-  }
-
+  // Initialize a new empty training session
   fun initializeEmptyTrainingSession() {
-    _uiState.update { currentState ->
-      currentState.copy(
+    _uiState.update {
+      TrainingSessionUiState(
         currentTrainingSession = TrainingSession(
           dateMillis = System.currentTimeMillis(),
           shortDescription = "",
@@ -45,30 +58,117 @@ class TrainingSessionViewModel(
           alarmType = null,
           notes = null,
           overallRating = null,
-          difficultyRating = null
+          difficultyRating = null,
+          trackLength = "100m"
         ),
-        currentTrackId = 1L, // Default track
         pistoStates = emptyMap(),
+        selectedPistot = 3, // Default minimum
+        maxPistot = 3,     // Default maximum
         totalPistoCount = 0,
         isLoading = false,
+        isSaving = false,
         error = null
       )
     }
   }
 
-  fun updateTrainingSession(trainingSession: TrainingSession) {
+  fun updateSelectedDate(dateMillis: Long) {
     _uiState.update { currentState ->
-      currentState.copy(currentTrainingSession = trainingSession)
+      currentState.copy(
+        currentTrainingSession = currentState.currentTrainingSession?.copy(
+          dateMillis = dateMillis
+        ) // If currentTrainingSession is null, initializeNewSessionForm should have handled it
+      )
     }
   }
 
+  fun updatePlanDescription(description: String) {
+    _uiState.update { currentState ->
+      currentState.copy(
+        currentTrainingSession = currentState.currentTrainingSession?.copy(
+          shortDescription = description
+        )
+      )
+    }
+  }
+
+  // MODIFIED: This function now updates trackLength within currentTrainingSession
+  fun updateTrackLengthAndMaxPistot(trackLengthString: String, correspondingMaxPistot: Int) {
+    _uiState.update { currentState ->
+      val newSelectedPistot = if (currentState.selectedPistot > correspondingMaxPistot) {
+        correspondingMaxPistot
+      } else {
+        currentState.selectedPistot.coerceAtLeast(0)
+      }
+
+      currentState.copy(
+        currentTrainingSession = currentState.currentTrainingSession?.copy(
+          trackLength = trackLengthString // Update STRING track length IN THE ENTITY
+        ) ?: TrainingSession(trackLength = trackLengthString), // Create new if null (should be rare if init is correct)
+        maxPistot = correspondingMaxPistot, // Update maxPistot in uiState
+        selectedPistot = newSelectedPistot // Update selectedPistot in uiState
+        // No separate uiState.trackLength to update anymore
+      )
+    }
+  }
+  // Update selected number of pistot
   fun updateSelectedPistot(newPistot: Int) {
     _uiState.update { currentState ->
-      currentState.copy(selectedPistot = newPistot)
+      currentState.copy(
+        selectedPistot = newPistot,
+        totalPistoCount = newPistot
+      )
     }
   }
 
-  // Add this method to your TrainingSessionViewModel class
+  // Update pisto mode (DEFAULT, TYHJA, MM)
+  fun updatePistoMode(pistoIndex: Int, mode: PistoMode) {
+    _uiState.update { currentState ->
+      val updatedPistos = currentState.pistoStates.toMutableMap()
+      val currentPisto = updatedPistos[pistoIndex]
+        ?: PistoUiState(pistoIndex = pistoIndex, selectedPistot = currentState.selectedPistot)
+
+      updatedPistos[pistoIndex] = currentPisto.copy(currentMode = mode)
+      currentState.copy(pistoStates = updatedPistos)
+    }
+  }
+
+  // Update MM-specific details for a pisto (all MM-related fields)
+  fun updateMMDetails(
+    pistoIndex: Int,
+    haukut: String? = null,
+    avut: String? = null,
+    palkka: String? = null,
+    suoraPalkka: Boolean? = null,
+    kiintoRulla: Boolean? = null,
+    irtorullanSijainti: String? = null,
+    isClosed: Boolean? = null
+  ) {
+    updatePistoState(pistoIndex) { pisto ->
+      pisto.copy(
+        haukut = haukut?.trim() ?: pisto.haukut,
+        avut = avut?.trim() ?: pisto.avut,
+        palkka = palkka?.trim() ?: pisto.palkka,
+        suoraPalkka = suoraPalkka ?: pisto.suoraPalkka,
+        kiintoRulla = kiintoRulla ?: pisto.kiintoRulla,
+        irtorullanSijainti = irtorullanSijainti?.trim() ?: pisto.irtorullanSijainti,
+        isClosed = isClosed ?: pisto.isClosed
+      )
+    }
+  }
+
+  // Get a specific pisto's state
+  fun getPistoState(pistoIndex: Int): PistoUiState? {
+    return _uiState.value.pistoStates[pistoIndex]
+  }
+
+  // Clear all pisto states (reset to default)
+  fun clearAllPistos() {
+    _uiState.update { currentState ->
+      currentState.copy(pistoStates = emptyMap())
+    }
+  }
+
   fun updateMaxPistot(newMaxPistot: Int) {
     _uiState.update { currentState ->
       currentState.copy(
@@ -78,110 +178,23 @@ class TrainingSessionViewModel(
     }
   }
 
-  // Update pisto mode (DEFAULT, TYHJA, MM)
-  fun updatePistoMode(pistoIndex: Int, mode: PistoMode) {
+  // Helper function to update a specific pisto state
+  private fun updatePistoState(pistoIndex: Int, update: (PistoUiState) -> PistoUiState) {
     _uiState.update { currentState ->
-      val updatedPistos = currentState.pistoStates.toMutableMap()
-
-      // Get the existing state for this pistoIndex, or create a new one if it doesn't exist.
-      // The new PistoUiState will use its default values for properties other than pistoIndex and currentMode.
-      // The selectedPistot from the PistoUiState's default will be used if creating a new one.
-      val currentPisto = updatedPistos[pistoIndex]
+      val currentPisto = currentState.pistoStates[pistoIndex]
         ?: PistoUiState(pistoIndex = pistoIndex, selectedPistot = currentState.selectedPistot)
 
-      // Update the mode and put it back in the map
-      updatedPistos[pistoIndex] = currentPisto.copy(currentMode = mode)
-
-      currentState.copy(pistoStates = updatedPistos)
-    }
-  }
-
-  // Update MM-specific details for a pisto
-  fun updateMMDetails(pistoIndex: Int, haukut: String?, avut: String?, palkka: String?) {
-    _uiState.update { currentState ->
-      val currentPisto = currentState.pistoStates[pistoIndex] ?: return@update currentState
-      val updatedPisto = currentPisto.copy(
-        haukut = haukut,
-        avut = avut,
-        palkka = palkka
-      )
       val updatedPistos = currentState.pistoStates.toMutableMap()
-      updatedPistos[pistoIndex] = updatedPisto
+      updatedPistos[pistoIndex] = update(currentPisto)
 
       currentState.copy(pistoStates = updatedPistos)
     }
-  }
-
-//  // Set alarm type for a specific training
-//  fun setAlarmType(trainingSessionIndex: Int, ilmaisuTyyli: String?) {
-//    _uiState.update { currentState ->
-//      val currentPisto = currentState.pistoStates[pistoIndex] ?: return@update currentState
-//      val updatedPisto = currentPisto.copy(ilmaisu = ilmaisuTyyli)
-//      val updatedPistos = currentState.pistoStates.toMutableMap()
-//      updatedPistos[pistoIndex] = updatedPisto
-//
-//      currentState.copy(pistoStates = updatedPistos)
-//    }
-//  }
-
-  // Set decoy praises directly for a specific pisto
-  fun setDecoyPraisesDirectly(pistoIndex: Int, suoraPalkka: Boolean) {
-    _uiState.update { currentState ->
-      val currentPisto = currentState.pistoStates[pistoIndex] ?: return@update currentState
-      val updatedPisto = currentPisto.copy(suoraPalkka = suoraPalkka)
-      val updatedPistos = currentState.pistoStates.toMutableMap()
-      updatedPistos[pistoIndex] = updatedPisto
-
-      currentState.copy(pistoStates = updatedPistos)
-    }
-  }
-
-  // Set roll type (solid or not) for a specific pisto
-  fun setIsRollSolid(pistoIndex: Int, kiintea: Boolean) {
-    _uiState.update { currentState ->
-      val currentPisto = currentState.pistoStates[pistoIndex] ?: return@update currentState
-      val updatedPisto = currentPisto.copy(kiintoRulla = kiintea)
-      val updatedPistos = currentState.pistoStates.toMutableMap()
-      updatedPistos[pistoIndex] = updatedPisto
-
-      currentState.copy(pistoStates = updatedPistos)
-    }
-  }
-
-  // Update roll position for a specific pisto
-  fun updateRollPosition(pistoIndex: Int, sijainti: String?) {
-    _uiState.update { currentState ->
-      val currentPisto = currentState.pistoStates[pistoIndex] ?: return@update currentState
-      val updatedPisto = currentPisto.copy(irtorullanSijainti = sijainti)
-      val updatedPistos = currentState.pistoStates.toMutableMap()
-      updatedPistos[pistoIndex] = updatedPisto
-
-      currentState.copy(pistoStates = updatedPistos)
-    }
-  }
-
-  // Set closed status for a specific pisto
-  fun setIsClosed(pistoIndex: Int, isClosed: Boolean) {
-    _uiState.update { currentState ->
-      val currentPisto = currentState.pistoStates[pistoIndex] ?: return@update currentState
-      val updatedPisto = currentPisto.copy(isClosed = isClosed)
-      val updatedPistos = currentState.pistoStates.toMutableMap()
-      updatedPistos[pistoIndex] = updatedPisto
-
-      currentState.copy(pistoStates = updatedPistos)
-    }
-  }
-
-  // Get a specific pisto's state
-  fun getPistoState(pistoIndex: Int): PistoUiState? {
-    return _uiState.value.pistoStates[pistoIndex]
   }
 
   // Convert UI state to database entities for saving
-  fun convertToEntityStates(trackId: Long): List<PistoStateEntity> {
+  private fun convertToEntityStates(): List<PistoStateEntity> {
     return _uiState.value.pistoStates.map { (index, uiState) ->
       PistoStateEntity(
-        trackId = trackId,
         pistoIndex = index,
         type = when (uiState.currentMode) {
           PistoMode.DEFAULT -> "Default"
@@ -194,66 +207,19 @@ class TrainingSessionViewModel(
         decoyPraisesDirectly = uiState.suoraPalkka,
         isRollSolid = uiState.kiintoRulla,
         rollPositionWithDecoy = uiState.irtorullanSijainti,
-        isClosed = uiState.isClosed ?: false
+        isClosed = uiState.isClosed ?: false,
+        trainingSessionId = 0L // Will be set by Room after TrainingSession is inserted
       )
     }
-  }
-
-  // Load existing pisto states from database entities
-  fun loadFromEntityStates(entities: List<PistoStateEntity>, totalPistoCount: Int) {
-    _uiState.update { currentState ->
-      val pistoStates = entities.associate { entity ->
-        entity.pistoIndex to PistoUiState(
-          pistoIndex = entity.pistoIndex,
-          currentMode = when (entity.type) {
-            "Default" -> PistoMode.DEFAULT
-            "Tyhja" -> PistoMode.TYHJA
-            "MM" -> PistoMode.MM
-            else -> PistoMode.DEFAULT
-          },
-          haukut = entity.barkAmount?.toString() ?: "",
-          suoraPalkka = entity.decoyPraisesDirectly ?: false,
-          kiintoRulla = entity.isRollSolid,
-          irtorullanSijainti = entity.rollPositionWithDecoy,
-          isClosed = entity.isClosed,
-          selectedPistot = totalPistoCount
-        )
-      }
-
-      currentState.copy(
-        pistoStates = pistoStates,
-        totalPistoCount = totalPistoCount
-      )
-    }
-  }
-
-  // Clear all pisto states (reset to default)
-  fun clearAllPistos() {
-    _uiState.update { currentState ->
-      val clearedPistos = currentState.pistoStates.mapValues { (index, _) ->
-        PistoUiState(
-          pistoIndex = index,
-          currentMode = PistoMode.DEFAULT,
-          selectedPistot = currentState.totalPistoCount
-        )
-      }
-
-      currentState.copy(pistoStates = clearedPistos)
-    }
-  }
-
-  // Set loading state
-  fun setLoading(isLoading: Boolean) {
-    _uiState.update { it.copy(isLoading = isLoading) }
-  }
-
-  // Set error state
-  fun setError(error: String?) {
-    _uiState.update { it.copy(error = error) }
   }
 
   // Set saving state
-  fun setSaving(isSaving: Boolean) {
+  private fun setSaving(isSaving: Boolean) {
     _uiState.update { it.copy(isSaving = isSaving) }
+  }
+
+  // Set error state
+  private fun setError(error: String?) {
+    _uiState.update { it.copy(error = error) }
   }
 }

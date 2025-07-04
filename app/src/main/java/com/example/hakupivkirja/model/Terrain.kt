@@ -1,5 +1,6 @@
 package com.example.hakupivkirja.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -19,6 +20,7 @@ import androidx.room.PrimaryKey
 data class Terrain(
   @PrimaryKey(autoGenerate = true)
   val id: Long = 0,
+  @ColumnInfo(name = "trainingSessionId")
   val trainingSessionId: Long?, // Foreign key to TrainingSession
   val forestThickness: Int?, // 5-point scale
   val altitudeChanges: Int?, // 5-point scale

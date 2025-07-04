@@ -45,10 +45,11 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState()) // This will now scroll everything
     ) {
         Valintarivi(
-            selectedPistot = uiState.selectedPistot,
-            pistotMax = uiState.maxPistot,
-            onSelectedPistotChange = { count -> trainingSessionViewModel.updateSelectedPistot(count) },
-            onMaxPistotChange = { count -> trainingSessionViewModel.updateMaxPistot(count) })
+//            selectedPistot = uiState.selectedPistot,
+//            pistotMax = uiState.maxPistot,
+//            onSelectedPistotChange = { count -> trainingSessionViewModel.updateSelectedPistot(count) },
+//            onMaxPistotChange = { count -> trainingSessionViewModel.updateMaxPistot(count) },
+            trainingSessionViewModel = trainingSessionViewModel)
         HorizontalDivider(thickness = 2.dp)
         UusiRata(
             uiState = uiState,

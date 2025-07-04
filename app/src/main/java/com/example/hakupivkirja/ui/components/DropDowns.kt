@@ -30,17 +30,19 @@ import com.example.hakupivkirja.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RadanPituusDropdown(onMaxPistotChange: (Int) -> Unit) {
+fun RadanPituusDropdown(
+    currentTrackLength: String,
+    onSelectionChange: (selectedOption: String, correspondingMaxPistot: Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val options = listOf("100m", "200m", "300m")
-    var selectedOption by remember { mutableStateOf(options[0]) }
+    //var selectedOption by remember { mutableStateOf(options[0]) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
-            value = selectedOption,
+            value = currentTrackLength,
             onValueChange = {},
             readOnly = true,
             label = { Text("Rata") },
@@ -57,13 +59,13 @@ fun RadanPituusDropdown(onMaxPistotChange: (Int) -> Unit) {
                 DropdownMenuItem(
                     text = { Text(option) },
                     onClick = {
-                        selectedOption = option
+                        //selectedOption = option
                         val newMaxPistot = when (option) {
                             "100m" -> 3
                             "200m" -> 7
                             else -> 11
                         }
-                        onMaxPistotChange(newMaxPistot)
+                        onSelectionChange(option, newMaxPistot)
                         expanded = false
 
                     }

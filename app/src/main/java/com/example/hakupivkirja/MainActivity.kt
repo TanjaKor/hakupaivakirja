@@ -21,6 +21,8 @@ import com.example.hakupivkirja.ui.theme.HakupäiväkirjaTheme
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 import com.example.hakupivkirja.utils.AppViewModelProvider
 
+
+//Jostain syystä tietokanta ei ota yhteyttä enää, kun yritin saada radan pituutta tallennettua.
 class MainActivity : ComponentActivity() {
     private lateinit var repository: HakupivkirjaRepository
     // Get the ViewModel instance using the factory from AppViewModelProvider
