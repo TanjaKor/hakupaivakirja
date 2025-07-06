@@ -55,8 +55,8 @@ fun HomeScreen(
             onPistoModeChange = { pistoIndex, mode ->
                 trainingSessionViewModel.updatePistoMode(pistoIndex, mode)
             },
-            onMMDetailsChange = { pistoIndex, haukut, avut, palkka ->
-                trainingSessionViewModel.updateMMDetails(pistoIndex, haukut, avut, palkka)
+            onMMDetailsChange = { pistoIndex, haukut, avut, palkka, comeToMiddle ->
+                trainingSessionViewModel.updateMMDetails(pistoIndex, haukut, avut, palkka, comeToMiddle)
             }
         )
     }

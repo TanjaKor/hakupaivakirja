@@ -26,7 +26,7 @@ data class PistoStateEntity(
   val type: String, // "Default", "Tyhja", "MM"
   val help: String?, // Use String for UI input, convert to Int for database
   val praise: String?, // Use String for UI input, convert to Int for database
-  //val comeToMiddle: Boolean?, // Is the dog supposed to do sisääntulo or not
+  val comeToMiddle: Boolean?, // Is the dog supposed to do sisääntulo or not
   // Fields for Bark alarm type (nullable)
   val barkAmount: Int? = null,
   // Fields for Roll alarm type (nullable)

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -119,7 +118,7 @@ fun PistojenMaaraDropdown(maxPistot: Int, onSelectedPistotChange: (Int) -> Unit)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AvutDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit) {
+fun AvutDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit,  modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
 
     // List of SVG icons (drawables) and their corresponding text labels
@@ -156,11 +155,11 @@ fun AvutDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit) 
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
-            modifier = Modifier
+            modifier = modifier
                 .menuAnchor()
-                .width(65.dp) // Adjust width of the dropdown trigger
-                .height(65.dp)
-                .padding(4.dp)
+//                .width(65.dp) // Adjust width of the dropdown trigger
+//                .height(65.dp)
+                .padding(1.dp)
         )
 
         ExposedDropdownMenu(
@@ -204,7 +203,7 @@ fun AvutDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit) 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit) {
+fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
     var expanded by remember { mutableStateOf(false) }
 
     // List of SVG icons (drawables) and their corresponding text labels
@@ -213,7 +212,6 @@ fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit
         Pair(R.drawable.bone_solid, "Ruoka"),  // Icon and text
         Pair(R.drawable.ball, "Lelu"),
         )
-
 
     val selectedIconResId = remember(selectedText, menuItemData) {
         menuItemData.find { it.second == selectedText }?.first
@@ -240,11 +238,11 @@ fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 },
-                modifier = Modifier
+                modifier = modifier
                     .menuAnchor()
-                    .width(76.dp) // Adjust width of the dropdown trigger
-                    .height(65.dp)
-                    .padding(4.dp)
+//                    .width(76.dp) // Adjust width of the dropdown trigger
+//                    .height(65.dp)
+                    .padding(1.dp)
             )
             // The dropdown menu itself,
             // Loop through menuItemData to display each dropdown item

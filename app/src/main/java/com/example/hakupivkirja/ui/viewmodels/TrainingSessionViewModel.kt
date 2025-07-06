@@ -149,7 +149,8 @@ class TrainingSessionViewModel(
     suoraPalkka: Boolean? = null,
     kiintoRulla: Boolean? = null,
     irtorullanSijainti: String? = null,
-    isClosed: Boolean? = null
+    isClosed: Boolean? = null,
+    comeToMiddle: Boolean? = null
   ) {
     updatePistoState(pistoIndex) { pisto ->
       pisto.copy(
@@ -159,7 +160,8 @@ class TrainingSessionViewModel(
         suoraPalkka = suoraPalkka ?: pisto.suoraPalkka,
         kiintoRulla = kiintoRulla ?: pisto.kiintoRulla,
         irtorullanSijainti = irtorullanSijainti?.trim() ?: pisto.irtorullanSijainti,
-        isClosed = isClosed ?: pisto.isClosed
+        isClosed = isClosed ?: pisto.isClosed,
+        comeToMiddle = comeToMiddle ?: pisto.comeToMiddle
       )
     }
   }
@@ -215,6 +217,7 @@ class TrainingSessionViewModel(
         isRollSolid = uiState.kiintoRulla,
         rollPositionWithDecoy = uiState.irtorullanSijainti,
         isClosed = uiState.isClosed ?: false,
+        comeToMiddle = uiState.comeToMiddle,
         trainingSessionId = 0L // Will be set by Room after TrainingSession is inserted
       )
     }

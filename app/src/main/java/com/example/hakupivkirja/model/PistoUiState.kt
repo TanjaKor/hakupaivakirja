@@ -13,7 +13,8 @@ data class PistoUiState (
   // Add any other UI-specific state here, like validation errors, loading indicators, etc.
   val haukutError: String? = null, //virheiden tarkasteluun
   val isSaving: Boolean? = false,
-  val selectedPistot: Int = 0, //kuinka monta pistoa on valittu
+  val selectedPistot: Int = 0, //kuinka monta pistoa on valittu,
+  val comeToMiddle: Boolean = false,
 )
 
 enum class PistoMode {
