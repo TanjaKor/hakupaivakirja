@@ -8,7 +8,7 @@ import com.example.hakupivkirja.model.dao.TrainingSessionDao
 
 @Database(
   entities = [PistoStateEntity::class, TrainingSession::class],
-  version = 3,
+  version = 4,
   exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun trainingSessionDao(): TrainingSessionDao
@@ -25,6 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
           AppDatabase::class.java,
           "hakupaivakirja_database"
         )
+          .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
           .build()
         INSTANCE = instance
         instance

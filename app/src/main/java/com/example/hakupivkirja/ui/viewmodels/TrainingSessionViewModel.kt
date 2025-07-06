@@ -1,5 +1,6 @@
 package com.example.hakupivkirja.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hakupivkirja.model.PistoMode
@@ -36,7 +37,13 @@ class TrainingSessionViewModel(
         val pistoStates = convertToEntityStates()
 
         if (session != null) {
+          Log.d("ViewModelSave", "Attempting to save. currentTrainingSession.trackLength = '${session.trackLength}', Full session: $session")
+        }
+
+
+        if (session != null) {
           repository.saveTrainingSession(session, pistoStates)
+          Log.d("ViewModelSave", "Repository call completed.")
         }
 
       } catch (e: Exception) {

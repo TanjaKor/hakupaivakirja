@@ -45,9 +45,11 @@ fun Valintarivi(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             DatePickerFieldToModal()
-            RadanPituusDropdown(currentTrackLength= uiState.trackLength, onSelectionChange = { trackLength, correspondingMaxPistot ->
-                trainingSessionViewModel.updateTrackLengthAndMaxPistot(trackLength, correspondingMaxPistot)
-            })
+            uiState.currentTrainingSession?.let {
+                RadanPituusDropdown(currentTrackLength= it.trackLength, onSelectionChange = { trackLength, correspondingMaxPistot ->
+                    trainingSessionViewModel.updateTrackLengthAndMaxPistot(trackLength, correspondingMaxPistot)
+                })
+            }
             PistojenMaaraDropdown(
                 maxPistot = uiState.maxPistot,
                 onSelectedPistotChange = { count ->
@@ -63,7 +65,11 @@ fun Valintarivi(
         }
         OutlinedTextField(
             value = uiState.currentTrainingSession?.shortDescription ?: "",
-            onValueChange = {text = it},
+            onValueChange =  { newDescription ->
+                // text = newDescription // (2) DON'T update local 'text' state
+                // INSTEAD, update ViewModel state
+                trainingSessionViewModel.updatePlanDescription(newDescription) // (3) CALL ViewModel function
+            },
             label = { Text("Suunnitelma") },
             modifier = Modifier.fillMaxWidth().padding(4.dp)
         )

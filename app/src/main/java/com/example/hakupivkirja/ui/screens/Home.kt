@@ -18,9 +18,8 @@ import com.example.hakupivkirja.ui.components.UusiRata
 import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
-//NEXTSTEP: Tietokanta yhdistetty, seuraavaksi kirjaa- nappula toimintaan -> testi että kulkee tieto
-// -> loput ui:sta (sisääntulon lisäys, piston moden vaihtaminen (x, jolla menee takaisin default tilaan),
-// treenin kuvauksen ym tietojen (valintapalkin) tietojen tallentaminen.
+// NEXTSTEP loput ui:sta (sisääntulon lisäys, piston moden vaihtaminen (x, jolla menee takaisin default tilaan),
+//Ilmaisun vaihtaminen Koiran kuvakkeeseen.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
