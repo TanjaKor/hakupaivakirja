@@ -11,7 +11,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,10 +32,11 @@ import com.example.hakupivkirja.R
 @Composable
 fun RadanPituusDropdown(
     currentTrackLength: String,
-    onSelectionChange: (selectedOption: String, correspondingMaxPistot: Int) -> Unit) {
+    onSelectionChange: (selectedOption: String, correspondingMaxPistot: Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var expanded by remember { mutableStateOf(false) }
     val options = listOf("100m", "200m", "300m")
-    //var selectedOption by remember { mutableStateOf(options[0]) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -46,7 +49,8 @@ fun RadanPituusDropdown(
             label = { Text("Rata") },
             modifier = Modifier
                 .menuAnchor()// Ensures proper dropdown anchoring
-                .width(80.dp)
+                .width(90.dp)
+                .padding(start = 8.dp, end = 4.dp)
         )
 
         ExposedDropdownMenu(
@@ -75,11 +79,13 @@ fun RadanPituusDropdown(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PistojenMaaraDropdown(maxPistot: Int, onSelectedPistotChange: (Int) -> Unit) {
+fun PistojenMaaraDropdown(
+    maxPistot: Int, onSelectedPistotChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+    ) {
     var expanded by remember { mutableStateOf(false) }
     val menuItemData = List(maxPistot) { it+3 }
     var selectedPistot by remember { mutableStateOf(menuItemData[0].toString()) }
-
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -92,7 +98,8 @@ fun PistojenMaaraDropdown(maxPistot: Int, onSelectedPistotChange: (Int) -> Unit)
             label = { Text("Pistot") },
             modifier = Modifier
                 .menuAnchor()
-                .width(70.dp)
+                .width(80.dp)
+                .padding(start = 4.dp)
         )
 
         ExposedDropdownMenu(
@@ -148,16 +155,22 @@ fun AvutDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit, 
                 // Only show the icon if something is selected
                 currentIconResId?.let { iconRes ->
                     val iconPainter = painterResource(id = iconRes)
-                    Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
+                    Icon(
+                        painter = iconPainter,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 }
             },
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer),
 //            trailingIcon = {
 //                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
 //            },
             modifier = modifier
                 .menuAnchor()
-//                .width(65.dp) // Adjust width of the dropdown trigger
-//                .height(65.dp)
                 .padding(1.dp)
         )
 
@@ -230,9 +243,17 @@ fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit
                     // Only show the icon if something is selected
                     selectedIconResId?.let { iconRes ->
                         val iconPainter = painterResource(id = iconRes)
-                        Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
+                        Icon(
+                            painter = iconPainter,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     }
                 },
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer),
 //                // Add a trailing icon to indicate it's a dropdown
 //                trailingIcon = {
 //                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)

@@ -61,7 +61,7 @@ fun UusiRata(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(220.dp)
             ) {
                 val leftPistoNumber = rowIndex * 2+2 //vas. pistonro + apu, ettei pistoja tule liikaa
                 val leftPistoIndex = leftPistoNumber - 1 //vas puoleisen piston index
@@ -87,10 +87,11 @@ fun UusiRata(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(leftPistoNumber.toString()) // pistonro
+                            Text(leftPistoNumber.toString(), color = MaterialTheme.colorScheme.onSecondaryContainer) // pistonro
                             Icon(
                                 Icons.Sharp.West,
                                 contentDescription = "takasin",
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier
                                     .clickable { onPistoModeChange(leftPistoIndex, PistoMode.DEFAULT) }
                             )
@@ -121,7 +122,7 @@ fun UusiRata(
 
                                 PistoMode.TYHJA -> {
                                     Row(modifier = Modifier.fillMaxWidth().fillMaxHeight(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                                        Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp))
+                                        Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
                                     }
                                 }
 
@@ -172,10 +173,11 @@ fun UusiRata(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(rightPistoNumber.toString()) // pistonro
+                            Text(rightPistoNumber.toString(), color = MaterialTheme.colorScheme.onSecondaryContainer) // pistonro
                             Icon(
                                 Icons.Sharp.West,
                                 contentDescription = "takasin",
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                 modifier = Modifier
                                     .padding(horizontal = 8.dp)
                                     .clickable { onPistoModeChange(rightPistoIndex, PistoMode.DEFAULT) }
@@ -210,7 +212,7 @@ fun UusiRata(
                                         horizontalArrangement = Arrangement.Center,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp))
+                                        Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
                                     }
                                 }
 

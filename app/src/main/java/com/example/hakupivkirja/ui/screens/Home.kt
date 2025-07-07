@@ -2,6 +2,7 @@ package com.example.hakupivkirja.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,7 +19,8 @@ import com.example.hakupivkirja.ui.components.UusiRata
 import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
-// NEXTSTEP rullailmaisun näkymien teko + logiikka
+// NEXTSTEP: keksiikö Kirjausnappulalle FABin tms paremman ratkaisun?
+//Tarkista raportista onko tosiaan valmis kotisivu treenin suunnittelun osalta??
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +46,7 @@ fun HomeScreen(
     ) {
         Valintarivi(
             trainingSessionViewModel = trainingSessionViewModel)
-        HorizontalDivider(thickness = 2.dp)
+        HorizontalDivider(thickness = 2.dp, modifier = Modifier.padding(bottom = 8.dp))
         UusiRata(
             uiState = uiState,
             onPistoModeChange = { pistoIndex, mode ->

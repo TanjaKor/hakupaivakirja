@@ -9,11 +9,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -63,13 +66,6 @@ fun Pisto(
       )
     }
     if (sessionAlarmType == "haukku") {
-      Row(
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 64.dp)
-      ) {
         OutlinedTextField(
           value = pistoUiState.haukut ?: "",
           onValueChange = { newValue ->
@@ -81,117 +77,97 @@ fun Pisto(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Done
           ),
-          label = { Text("Hau", fontSize = 11.sp) },
+          label = { Text("Haukut", fontSize = 11.sp) },
+          colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+          ),
+          textStyle = TextStyle(color = MaterialTheme.colorScheme.onSecondaryContainer),
           modifier = Modifier
-              .weight(0.7f)
               .heightIn(min = 55.dp)
               .padding(1.dp),
         )
-      }
-      Column(
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier
-            .weight(0.5f)
-            .padding(horizontal = 2.dp)
-            .padding(top = 3.dp)
-      ) {
-        Text("Sisääntulo", fontSize = 11.sp, lineHeight = 9.sp)
-        Checkbox(
-          checked = pistoUiState.comeToMiddle,
-          onCheckedChange = onComeToMiddleChange
-        )
-      }
-      Column(
-        horizontalAlignment = Alignment.End,
-        modifier = Modifier
-            .weight(0.5f)
-            .padding(top = 3.dp)
-      ) {
-        Text("Umpipiilo", fontSize = 11.sp, lineHeight = 9.sp)
-        Checkbox(
-          checked = pistoUiState.isClosed,
-          onCheckedChange = onIsClosedChange
-        )
-      }
     } else {
-      OutlinedTextField(
-        value = pistoUiState.irtorullanSijainti ?: "",
-        onValueChange = { newValue ->
-          if (newValue.toIntOrNull() != null || newValue.isEmpty()) {
-            onIrtorullanSijaintiChange(newValue)
-          }
-        },
-        keyboardOptions = KeyboardOptions( // Keep only this one
-          keyboardType = KeyboardType.Text,
-          imeAction = ImeAction.Done
-        ),
-        label = { Text("Irtorullan sijainti", fontSize = 11.sp) },
-        modifier = Modifier
-            .weight(1f)
-            .heightIn(min = 55.dp)
-            .padding(1.dp),
-      )
+        OutlinedTextField(
+            value = pistoUiState.irtorullanSijainti ?: "",
+            onValueChange = { newValue ->
+                if (newValue.toIntOrNull() != null || newValue.isEmpty()) {
+                    onIrtorullanSijaintiChange(newValue)
+                }
+            },
+            keyboardOptions = KeyboardOptions( // Keep only this one
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done
+            ),
+            label = { Text("Irtorullan sijainti", fontSize = 11.sp) },
+            colors = TextFieldDefaults.colors(
+              unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+              unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+              focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+            ),
+            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSecondaryContainer),
+            modifier = Modifier
+                .heightIn(min = 55.dp)
+                .padding(1.dp),
+        )
+    }
       Row(
           modifier = Modifier
               .fillMaxWidth()
               .heightIn(min = 64.dp)
       ) {
-        Column(
-          horizontalAlignment = Alignment.Start,
-          modifier = Modifier
-              .weight(0.5f)
-              .padding(horizontal = 2.dp)
-              .padding(top = 3.dp)
-        ) {
-          Text("Sisääntulo", fontSize = 11.sp, lineHeight = 9.sp)
-          Checkbox(
+        CheckBoxWithLabel(
+            label = "Sisääntulo",
             checked = pistoUiState.comeToMiddle,
-            onCheckedChange = onComeToMiddleChange
-          )
-        }
-        Column(
-          horizontalAlignment = Alignment.End,
-          modifier = Modifier
-              .weight(0.5f)
-              .padding(top = 3.dp)
-        ) {
-          Text("Umpipiilo", fontSize = 11.sp, lineHeight = 9.sp)
-          Checkbox(
+            onCheckedChange = onComeToMiddleChange,
+            modifier = Modifier.weight(0.5f)
+        )
+        CheckBoxWithLabel(
+            label = "Umpipiilo",
             checked = pistoUiState.isClosed,
-            onCheckedChange = onIsClosedChange
-          )
-        }
-        Column(
-          horizontalAlignment = Alignment.Start,
-          modifier = Modifier
-              .weight(0.5f)
-              .padding(horizontal = 2.dp)
-              .padding(top = 3.dp)
-        ) {
-          Text("Suorapalkka", fontSize = 11.sp, lineHeight = 9.sp)
-          Checkbox(
-            checked = pistoUiState.suoraPalkka,
-            onCheckedChange = onSuoraPalkkaChange
-          )
-        }
-        Column(
-          horizontalAlignment = Alignment.End,
-          modifier = Modifier
-              .weight(0.5f)
-              .padding(top = 3.dp)
-        ) {
-          Text("Kiintorulla", fontSize = 11.sp, lineHeight = 9.sp)
-          pistoUiState.kiintoRulla?.let {
-            Checkbox(
-              checked = it,
-              onCheckedChange = onKiintoRullaChange
-            )
+            onCheckedChange = onIsClosedChange,
+            modifier = Modifier.weight(0.5f)
+        )
+          if (sessionAlarmType != "haukku") {
+              CheckBoxWithLabel(
+                  label = "Suorapalkka",
+                  checked = pistoUiState.suoraPalkka,
+                  onCheckedChange = onSuoraPalkkaChange,
+                  modifier = Modifier.weight(0.5f)
+              )
+              pistoUiState.kiintoRulla?.let {
+                  CheckBoxWithLabel(
+                      label = "Kiintorulla",
+                      checked = it,
+                      onCheckedChange = onKiintoRullaChange,
+                      modifier = Modifier.weight(0.5f)
+                  )
+              }
           }
-        }
       }
-
-    }
-
   }
+}
+
+@Composable
+private fun CheckBoxWithLabel(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start
+) {
+    Column(
+        horizontalAlignment = horizontalAlignment,
+        modifier = modifier
+            .padding(horizontal = 2.dp)
+            .padding(top = 3.dp)
+    ) {
+        Text(label, fontSize = 11.sp, lineHeight = 9.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
 }
 

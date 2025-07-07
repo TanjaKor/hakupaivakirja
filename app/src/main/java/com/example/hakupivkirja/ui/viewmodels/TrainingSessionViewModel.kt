@@ -61,12 +61,12 @@ class TrainingSessionViewModel(
         currentTrainingSession = TrainingSession(
           dateMillis = System.currentTimeMillis(),
           shortDescription = "",
-          dogName = "Testi",
+          dogName = "Ilmaisu",
           alarmType = "haukku",
           notes = null,
           overallRating = null,
           difficultyRating = null,
-          trackLength = ""
+          trackLength = "100m"
         ),
         pistoStates = emptyMap(),
         selectedPistot = 3, // Default minimum

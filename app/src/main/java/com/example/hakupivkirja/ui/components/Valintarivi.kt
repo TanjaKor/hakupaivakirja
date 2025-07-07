@@ -5,17 +5,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddTask
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
@@ -27,24 +31,24 @@ fun Valintarivi(
 ) {
     // Collect the uiState from the ViewModel
     val uiState by trainingSessionViewModel.uiState.collectAsState()
-    var selectedDate by remember { mutableStateOf<Long?>(null) }
-    var text by remember { mutableStateOf("Treenisuunnitelma lyhyesti") }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            DatePickerFieldToModal()
+            DatePickerFieldToModal( )
             uiState.currentTrainingSession?.let {
-                RadanPituusDropdown(currentTrackLength= it.trackLength, onSelectionChange = { trackLength, correspondingMaxPistot ->
+                RadanPituusDropdown(
+                    currentTrackLength= it.trackLength,
+                    onSelectionChange = { trackLength, correspondingMaxPistot ->
                     trainingSessionViewModel.updateTrackLengthAndMaxPistot(trackLength, correspondingMaxPistot)
-                })
+                    }
+                )
             }
             PistojenMaaraDropdown(
                 maxPistot = uiState.maxPistot,
@@ -52,10 +56,18 @@ fun Valintarivi(
                     trainingSessionViewModel.updateSelectedPistot(count)
                 }
             )
-            Button(
-                onClick = { trainingSessionViewModel.saveTrainingSession() },
+//            Button(
+//                onClick = { trainingSessionViewModel.saveTrainingSession() },
+//            ) {
+//                Text(text = "Kirjaa")
+//            }
+            IconButton(onClick = {trainingSessionViewModel.saveTrainingSession()}
             ) {
-                Text(text = "Kirjaa")
+                Icon(
+                    imageVector = Icons.Default.AddTask,
+                    contentDescription = "Kirjaa",
+                    tint = MaterialTheme.colorScheme.primary
+                )
             }
 
         }
@@ -66,6 +78,10 @@ fun Valintarivi(
                 // INSTEAD, update ViewModel state
                 trainingSessionViewModel.updatePlanDescription(newDescription) // (3) CALL ViewModel function
             },
+            keyboardOptions = KeyboardOptions( // Keep only this one
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done
+            ),
             label = { Text("Suunnitelma") },
             modifier = Modifier.fillMaxWidth().padding(4.dp)
         )
