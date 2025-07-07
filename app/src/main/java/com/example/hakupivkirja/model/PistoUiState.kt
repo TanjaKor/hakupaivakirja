@@ -9,12 +9,13 @@ data class PistoUiState (
   val suoraPalkka: Boolean = false, // Default to false for UI
   val kiintoRulla: Boolean? = false, // Default to false for UI
   val irtorullanSijainti: String? = "",
-  val isClosed: Boolean? = false, // Default to false for UI, onko piilo suljettu vai avoin
+  val isClosed: Boolean = false, // Default to false for UI, onko piilo suljettu vai avoin
+  val comeToMiddle: Boolean = false,
   // Add any other UI-specific state here, like validation errors, loading indicators, etc.
   val haukutError: String? = null, //virheiden tarkasteluun
   val isSaving: Boolean? = false,
   val selectedPistot: Int = 0, //kuinka monta pistoa on valittu,
-  val comeToMiddle: Boolean = false,
+
 )
 
 enum class PistoMode {

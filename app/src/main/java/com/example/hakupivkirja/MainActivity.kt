@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HakupäiväkirjaTheme {
                 Scaffold(
-                    topBar = { AppTopBar() }
+                    topBar = { AppTopBar(trainingSessionViewModel = trainingSessionViewModel) }
                 ) { innerPadding ->
                     App(
                         modifier = Modifier.padding(innerPadding).background(MaterialTheme.colorScheme.surface), viewModel = trainingSessionViewModel

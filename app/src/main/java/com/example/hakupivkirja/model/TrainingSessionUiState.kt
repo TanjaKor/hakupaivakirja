@@ -9,5 +9,7 @@ data class TrainingSessionUiState(
   val error: String? = null,
   val isSaving: Boolean = false,
   val selectedPistot: Int = 3,
-  val maxPistot: Int = 3
+  val maxPistot: Int = 3,
+  val alarmType: String? = null,
+  val dogName: String? = "",
 )

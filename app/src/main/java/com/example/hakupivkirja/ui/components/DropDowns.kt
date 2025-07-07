@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -152,9 +151,9 @@ fun AvutDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit, 
                     Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
                 }
             },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
+//            trailingIcon = {
+//                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+//            },
             modifier = modifier
                 .menuAnchor()
 //                .width(65.dp) // Adjust width of the dropdown trigger
@@ -234,10 +233,10 @@ fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit
                         Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
                     }
                 },
-                // Add a trailing icon to indicate it's a dropdown
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
+//                // Add a trailing icon to indicate it's a dropdown
+//                trailingIcon = {
+//                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+//                },
                 modifier = modifier
                     .menuAnchor()
 //                    .width(76.dp) // Adjust width of the dropdown trigger

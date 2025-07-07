@@ -61,8 +61,8 @@ class TrainingSessionViewModel(
         currentTrainingSession = TrainingSession(
           dateMillis = System.currentTimeMillis(),
           shortDescription = "",
-          dogName = "",
-          alarmType = null,
+          dogName = "Testi",
+          alarmType = "",
           notes = null,
           overallRating = null,
           difficultyRating = null,
@@ -118,6 +118,19 @@ class TrainingSessionViewModel(
       )
     }
   }
+
+  fun updateAlarmType(alarmType: String?) {
+    _uiState.update { currentState ->
+      if (currentState.currentTrainingSession == null) {
+      }
+      currentState.copy(
+        currentTrainingSession = currentState.currentTrainingSession?.copy(
+          alarmType = alarmType
+        )
+      )
+    }
+  }
+
   // Update selected number of pistot
   fun updateSelectedPistot(newPistot: Int) {
     _uiState.update { currentState ->
@@ -129,8 +142,7 @@ class TrainingSessionViewModel(
   }
 
   // Update pisto mode (DEFAULT, TYHJA, MM)
-  fun updatePistoMode(pistoIndex: Int, mode: PistoMode) {
-    _uiState.update { currentState ->
+  fun updatePistoMode(pistoIndex: Int, mode: PistoMode) {    _uiState.update { currentState ->
       val updatedPistos = currentState.pistoStates.toMutableMap()
       val currentPisto = updatedPistos[pistoIndex]
         ?: PistoUiState(pistoIndex = pistoIndex, selectedPistot = currentState.selectedPistot)
@@ -146,22 +158,23 @@ class TrainingSessionViewModel(
     haukut: String? = null,
     avut: String? = null,
     palkka: String? = null,
+    comeToMiddle: Boolean? = null,
+    isClosed: Boolean? = null,
     suoraPalkka: Boolean? = null,
     kiintoRulla: Boolean? = null,
     irtorullanSijainti: String? = null,
-    isClosed: Boolean? = null,
-    comeToMiddle: Boolean? = null
+
   ) {
     updatePistoState(pistoIndex) { pisto ->
       pisto.copy(
         haukut = haukut?.trim() ?: pisto.haukut,
         avut = avut?.trim() ?: pisto.avut,
         palkka = palkka?.trim() ?: pisto.palkka,
+        comeToMiddle = comeToMiddle ?: pisto.comeToMiddle,
+        isClosed = isClosed ?: pisto.isClosed,
         suoraPalkka = suoraPalkka ?: pisto.suoraPalkka,
         kiintoRulla = kiintoRulla ?: pisto.kiintoRulla,
         irtorullanSijainti = irtorullanSijainti?.trim() ?: pisto.irtorullanSijainti,
-        isClosed = isClosed ?: pisto.isClosed,
-        comeToMiddle = comeToMiddle ?: pisto.comeToMiddle
       )
     }
   }

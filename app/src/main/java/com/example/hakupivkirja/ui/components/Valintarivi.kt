@@ -22,10 +22,6 @@ import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
 @Composable
 fun Valintarivi(
-//    pistotMax: Int,
-//    selectedPistot: Int,
-//    onMaxPistotChange: (Int) -> Unit,
-//    onSelectedPistotChange: (Int) -> Unit,
     trainingSessionViewModel: TrainingSessionViewModel,
     modifier: Modifier = Modifier
 ) {

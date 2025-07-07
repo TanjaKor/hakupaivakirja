@@ -34,7 +34,7 @@ import kotlin.math.ceil
 fun UusiRata(
     uiState: TrainingSessionUiState,
     onPistoModeChange: (Int, PistoMode) -> Unit,
-    onMMDetailsChange: (Int, String?, String?, String?, Boolean) -> Unit)
+    onMMDetailsChange: (Int, String?, String?, String?, Boolean, Boolean) -> Unit)
 {
     val selectedPistot = uiState.selectedPistot
     println("Rata - pistojenMaara initial value: $selectedPistot")
@@ -54,7 +54,7 @@ fun UusiRata(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(168.dp)
+                    .height(172.dp)
             ) {
                 val leftPistoNumber = rowIndex * 2+2 //vas. pistonro + apu, ettei pistoja tule liikaa
                 val leftPistoIndex = leftPistoNumber - 1 //vas puoleisen piston index
@@ -102,17 +102,19 @@ fun UusiRata(
                                     Pisto(
                                         pistoUiState = leftPistoState,
                                         onHaukutChange = { haukut ->
-                                            onMMDetailsChange(leftPistoIndex, haukut, leftPistoState.avut, leftPistoState.palkka, leftPistoState.comeToMiddle)
+                                            onMMDetailsChange(leftPistoIndex, haukut, leftPistoState.avut, leftPistoState.palkka, leftPistoState.comeToMiddle, leftPistoState.isClosed)
                                         },
                                         onAvutChange = { avut ->
-                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, avut, leftPistoState.palkka, leftPistoState.comeToMiddle)
+                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, avut, leftPistoState.palkka, leftPistoState.comeToMiddle, leftPistoState.isClosed)
                                         },
                                         onPalkkaChange = { palkka ->
-                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, leftPistoState.avut, palkka, leftPistoState.comeToMiddle)
+                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, leftPistoState.avut, palkka, leftPistoState.comeToMiddle, leftPistoState.isClosed)
                                         },
                                         onComeToMiddleChange = { comeToMiddle ->
-                                            Log.d("Parent", "onMMDetailsChange called with comeToMiddle: $comeToMiddle for index: $leftPistoIndex")
-                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, leftPistoState.avut, leftPistoState.palkka, comeToMiddle) },
+                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, leftPistoState.avut, leftPistoState.palkka, comeToMiddle, leftPistoState.isClosed) },
+                                        onIsClosedChange = { isClosed ->
+                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, leftPistoState.avut, leftPistoState.palkka, leftPistoState.comeToMiddle, isClosed)
+                                        }
                                         )
                                 }
 
@@ -190,18 +192,20 @@ fun UusiRata(
                                     Pisto(
                                         pistoUiState = rightPistoState,
                                         onHaukutChange = { haukut ->
-                                            onMMDetailsChange(rightPistoIndex, haukut, rightPistoState.avut, rightPistoState.palkka, rightPistoState.comeToMiddle)
+                                            onMMDetailsChange(rightPistoIndex, haukut, rightPistoState.avut, rightPistoState.palkka, rightPistoState.comeToMiddle, rightPistoState.isClosed)
                                         },
                                         onAvutChange = { avut ->
-                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, avut, rightPistoState.palkka, rightPistoState.comeToMiddle)
+                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, avut, rightPistoState.palkka, rightPistoState.comeToMiddle, rightPistoState.isClosed)
                                         },
                                         onPalkkaChange = { palkka ->
-                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, rightPistoState.avut, palkka, rightPistoState.comeToMiddle)
+                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, rightPistoState.avut, palkka, rightPistoState.comeToMiddle, rightPistoState.isClosed)
                                         },
                                         onComeToMiddleChange = { comeToMiddle ->
-                                            Log.d("Parent", "onMMDetailsChange called with comeToMiddle: $comeToMiddle for index: $rightPistoIndex")
-                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, rightPistoState.avut, rightPistoState.palkka, comeToMiddle)
+                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, rightPistoState.avut, rightPistoState.palkka, comeToMiddle, rightPistoState.isClosed)
                                         },
+                                        onIsClosedChange = { isClosed ->
+                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, rightPistoState.avut, rightPistoState.palkka, rightPistoState.comeToMiddle, isClosed)
+                                        }
                                     )
                                 }
 
@@ -262,7 +266,7 @@ fun UusiRataPreview2Pistot() {
                 1 to PistoUiState(
                     pistoIndex = 1,
                     currentMode = PistoMode.MM,
-                    haukut = "5",
+                    haukut = "55",
                     avut = "Pupu",
                     palkka = "Lelu",
                     selectedPistot = 3
@@ -280,7 +284,7 @@ fun UusiRataPreview2Pistot() {
         UusiRata(
             uiState = mockUiState,
             onPistoModeChange = { _, _ -> },
-            onMMDetailsChange = { _, _, _, _ , _-> }
+            onMMDetailsChange = { _, _, _, _ , _, _-> }
         )
     }
 }

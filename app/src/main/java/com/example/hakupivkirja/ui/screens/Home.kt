@@ -44,10 +44,6 @@ fun HomeScreen(
             .verticalScroll(rememberScrollState()) // This will now scroll everything
     ) {
         Valintarivi(
-//            selectedPistot = uiState.selectedPistot,
-//            pistotMax = uiState.maxPistot,
-//            onSelectedPistotChange = { count -> trainingSessionViewModel.updateSelectedPistot(count) },
-//            onMaxPistotChange = { count -> trainingSessionViewModel.updateMaxPistot(count) },
             trainingSessionViewModel = trainingSessionViewModel)
         HorizontalDivider(thickness = 2.dp)
         UusiRata(
@@ -55,8 +51,8 @@ fun HomeScreen(
             onPistoModeChange = { pistoIndex, mode ->
                 trainingSessionViewModel.updatePistoMode(pistoIndex, mode)
             },
-            onMMDetailsChange = { pistoIndex, haukut, avut, palkka, comeToMiddle ->
-                trainingSessionViewModel.updateMMDetails(pistoIndex, haukut, avut, palkka, comeToMiddle)
+            onMMDetailsChange = { pistoIndex, haukut, avut, palkka, comeToMiddle, isClosed ->
+                trainingSessionViewModel.updateMMDetails(pistoIndex, haukut, avut, palkka, comeToMiddle, isClosed)
             }
         )
     }

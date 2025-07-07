@@ -21,20 +21,22 @@ import androidx.compose.ui.unit.sp
 import com.example.hakupivkirja.model.PistoUiState
 
 @Composable
-fun Pisto(pistoUiState: PistoUiState,
+fun Pisto(
+          pistoUiState: PistoUiState,
           onHaukutChange: (String) -> Unit,
           onAvutChange: (String) -> Unit,
           onPalkkaChange: (String) -> Unit,
-          onComeToMiddleChange: (Boolean) -> Unit) {
+          onComeToMiddleChange: (Boolean) -> Unit,
+          onIsClosedChange: (Boolean) -> Unit
+){
     Column(
-
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.Bottom,
+        modifier = Modifier.padding(top = 4.dp)
     ) {
 
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-//                .height(130.dp),
             verticalAlignment = Alignment.Top
         ) {
             AvutDropdown(selectedText = pistoUiState.avut ?: "",
@@ -43,7 +45,7 @@ fun Pisto(pistoUiState: PistoUiState,
                 },
                 modifier = Modifier
                     .weight(0.3f)
-                    .widthIn(min = 65.dp, max = 100.dp)
+                    .widthIn(min = 60.dp, max = 90.dp)
             )
             PalkkaDropdown(
                 selectedText = pistoUiState.palkka ?: "",
@@ -52,7 +54,7 @@ fun Pisto(pistoUiState: PistoUiState,
                 },
                 modifier = Modifier
                     .weight(0.3f)
-                    .widthIn(min = 76.dp, max = 100.dp)
+                    .widthIn(min = 65.dp, max = 100.dp)
             )
         }
         Row(
@@ -74,14 +76,27 @@ fun Pisto(pistoUiState: PistoUiState,
                 label = { Text("Hau", fontSize = 11.sp) },
                 modifier = Modifier
                     .weight(1f)
-                    .heightIn(min = 56.dp)
+                    .heightIn(min = 55.dp)
                     .padding(1.dp),
             )
-            Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
-                Text("Sisääntulo", fontSize = 11.sp)
+            Column(
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier.weight(0.5f).padding(horizontal = 2.dp).padding(top = 3.dp)
+            ) {
+                Text("Sisääntulo", fontSize = 11.sp, lineHeight = 9.sp)
+              Checkbox(
+                checked = pistoUiState.comeToMiddle,
+                onCheckedChange = onComeToMiddleChange
+              )
+            }
+            Column(
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.weight(0.5f).padding(top = 3.dp)
+            ) {
+                Text("Umpipiilo", fontSize = 11.sp, lineHeight = 9.sp)
                 Checkbox(
-                    checked = pistoUiState.comeToMiddle,
-                    onCheckedChange = onComeToMiddleChange
+                    checked = pistoUiState.isClosed,
+                    onCheckedChange = onIsClosedChange
                 )
             }
 
