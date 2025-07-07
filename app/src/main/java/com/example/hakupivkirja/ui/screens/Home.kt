@@ -18,8 +18,7 @@ import com.example.hakupivkirja.ui.components.UusiRata
 import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
-// NEXTSTEP loput ui:sta (sisääntulon lisäys, piston moden vaihtaminen (x, jolla menee takaisin default tilaan),
-//Ilmaisun vaihtaminen Koiran kuvakkeeseen.
+// NEXTSTEP rullailmaisun näkymien teko + logiikka
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,8 +50,29 @@ fun HomeScreen(
             onPistoModeChange = { pistoIndex, mode ->
                 trainingSessionViewModel.updatePistoMode(pistoIndex, mode)
             },
-            onMMDetailsChange = { pistoIndex, haukut, avut, palkka, comeToMiddle, isClosed ->
-                trainingSessionViewModel.updateMMDetails(pistoIndex, haukut, avut, palkka, comeToMiddle, isClosed)
+            onHaukutChange = { pistoIndex, haukut ->
+                trainingSessionViewModel.updateHaukut(pistoIndex, haukut)
+            },
+            onAvutChange = { pistoIndex, avut ->
+                trainingSessionViewModel.updateAvut(pistoIndex, avut)
+            },
+            onPalkkaChange = { pistoIndex, palkka ->
+                trainingSessionViewModel.updatePalkka(pistoIndex, palkka)
+            },
+            onComeToMiddleChange = { pistoIndex, comeToMiddle ->
+                trainingSessionViewModel.updateComeToMiddle(pistoIndex, comeToMiddle)
+            },
+            onIsClosedChange = { pistoIndex, isClosed ->
+                trainingSessionViewModel.updateIsClosed(pistoIndex, isClosed)
+            },
+            onSuoraPalkkaChange = { pistoIndex, suoraPalkka ->
+                trainingSessionViewModel.updateSuoraPalkka(pistoIndex, suoraPalkka)
+            },
+            onKiintoRullaChange = { pistoIndex, kiintoRulla ->
+                trainingSessionViewModel.updateKiintoRulla(pistoIndex, kiintoRulla)
+            },
+            onIrtorullanSijaintiChange = { pistoIndex, irtorullanSijainti ->
+                trainingSessionViewModel.updateIrtorullanSijainti(pistoIndex, irtorullanSijainti)
             }
         )
     }

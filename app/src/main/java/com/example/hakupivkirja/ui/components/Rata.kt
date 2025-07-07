@@ -34,8 +34,15 @@ import kotlin.math.ceil
 fun UusiRata(
     uiState: TrainingSessionUiState,
     onPistoModeChange: (Int, PistoMode) -> Unit,
-    onMMDetailsChange: (Int, String?, String?, String?, Boolean, Boolean) -> Unit)
-{
+    onHaukutChange: (Int, String) -> Unit,
+    onAvutChange: (Int, String) -> Unit,
+    onPalkkaChange: (Int, String) -> Unit,
+    onComeToMiddleChange: (Int, Boolean) -> Unit,
+    onIsClosedChange: (Int, Boolean) -> Unit,
+    onSuoraPalkkaChange: (Int, Boolean) -> Unit,
+    onKiintoRullaChange: (Int, Boolean) -> Unit,
+    onIrtorullanSijaintiChange: (Int, String) -> Unit,
+) {
     val selectedPistot = uiState.selectedPistot
     println("Rata - pistojenMaara initial value: $selectedPistot")
 
@@ -54,7 +61,7 @@ fun UusiRata(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(172.dp)
+                    .height(200.dp)
             ) {
                 val leftPistoNumber = rowIndex * 2+2 //vas. pistonro + apu, ettei pistoja tule liikaa
                 val leftPistoIndex = leftPistoNumber - 1 //vas puoleisen piston index
@@ -96,25 +103,19 @@ fun UusiRata(
                                     Arrangement.Center
                                 else Arrangement.Start
                         ) { //vas piston sisältö
-
                             when (leftPistoState.currentMode) {
                                 PistoMode.MM -> {
                                     Pisto(
                                         pistoUiState = leftPistoState,
-                                        onHaukutChange = { haukut ->
-                                            onMMDetailsChange(leftPistoIndex, haukut, leftPistoState.avut, leftPistoState.palkka, leftPistoState.comeToMiddle, leftPistoState.isClosed)
-                                        },
-                                        onAvutChange = { avut ->
-                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, avut, leftPistoState.palkka, leftPistoState.comeToMiddle, leftPistoState.isClosed)
-                                        },
-                                        onPalkkaChange = { palkka ->
-                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, leftPistoState.avut, palkka, leftPistoState.comeToMiddle, leftPistoState.isClosed)
-                                        },
-                                        onComeToMiddleChange = { comeToMiddle ->
-                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, leftPistoState.avut, leftPistoState.palkka, comeToMiddle, leftPistoState.isClosed) },
-                                        onIsClosedChange = { isClosed ->
-                                            onMMDetailsChange(leftPistoIndex, leftPistoState.haukut, leftPistoState.avut, leftPistoState.palkka, leftPistoState.comeToMiddle, isClosed)
-                                        }
+                                        sessionAlarmType = uiState.currentTrainingSession?.alarmType,
+                                        onHaukutChange = { haukut -> onHaukutChange(leftPistoIndex, haukut) },
+                                        onAvutChange = { avut -> onAvutChange(leftPistoIndex, avut) },
+                                        onPalkkaChange = { palkka -> onPalkkaChange(leftPistoIndex, palkka) },
+                                        onComeToMiddleChange = { comeToMiddle -> onComeToMiddleChange(leftPistoIndex, comeToMiddle)},
+                                        onIsClosedChange = { isClosed -> onIsClosedChange(leftPistoIndex, isClosed)},
+                                        onSuoraPalkkaChange = { suoraPalkka -> onSuoraPalkkaChange(leftPistoIndex, suoraPalkka)},
+                                        onKiintoRullaChange = { kiintoRulla -> onKiintoRullaChange(leftPistoIndex, kiintoRulla)},
+                                        onIrtorullanSijaintiChange = { irtorullanSijainti -> onIrtorullanSijaintiChange(leftPistoIndex, irtorullanSijainti)}
                                         )
                                 }
 
@@ -191,21 +192,15 @@ fun UusiRata(
                                 PistoMode.MM -> {
                                     Pisto(
                                         pistoUiState = rightPistoState,
-                                        onHaukutChange = { haukut ->
-                                            onMMDetailsChange(rightPistoIndex, haukut, rightPistoState.avut, rightPistoState.palkka, rightPistoState.comeToMiddle, rightPistoState.isClosed)
-                                        },
-                                        onAvutChange = { avut ->
-                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, avut, rightPistoState.palkka, rightPistoState.comeToMiddle, rightPistoState.isClosed)
-                                        },
-                                        onPalkkaChange = { palkka ->
-                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, rightPistoState.avut, palkka, rightPistoState.comeToMiddle, rightPistoState.isClosed)
-                                        },
-                                        onComeToMiddleChange = { comeToMiddle ->
-                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, rightPistoState.avut, rightPistoState.palkka, comeToMiddle, rightPistoState.isClosed)
-                                        },
-                                        onIsClosedChange = { isClosed ->
-                                            onMMDetailsChange(rightPistoIndex, rightPistoState.haukut, rightPistoState.avut, rightPistoState.palkka, rightPistoState.comeToMiddle, isClosed)
-                                        }
+                                        sessionAlarmType = uiState.currentTrainingSession?.alarmType,
+                                        onHaukutChange = { haukut -> onHaukutChange(rightPistoIndex, haukut) },
+                                        onAvutChange = { avut -> onAvutChange(rightPistoIndex, avut) },
+                                        onPalkkaChange = { palkka -> onPalkkaChange(rightPistoIndex, palkka) },
+                                        onComeToMiddleChange = { comeToMiddle -> onComeToMiddleChange(rightPistoIndex, comeToMiddle)},
+                                        onIsClosedChange = { isClosed -> onIsClosedChange(rightPistoIndex, isClosed)},
+                                        onSuoraPalkkaChange = { suoraPalkka -> onSuoraPalkkaChange(rightPistoIndex, suoraPalkka)},
+                                        onKiintoRullaChange = { kiintoRulla -> onKiintoRullaChange(rightPistoIndex, kiintoRulla)},
+                                        onIrtorullanSijaintiChange = { irtorullanSijainti -> onIrtorullanSijaintiChange(rightPistoIndex, irtorullanSijainti)}
                                     )
                                 }
 
@@ -284,7 +279,15 @@ fun UusiRataPreview2Pistot() {
         UusiRata(
             uiState = mockUiState,
             onPistoModeChange = { _, _ -> },
-            onMMDetailsChange = { _, _, _, _ , _, _-> }
+            onHaukutChange = { _, _ -> },
+            onAvutChange = { _, _ -> },
+            onPalkkaChange = { _, _ -> },
+            onComeToMiddleChange = { _, _ -> },
+            onIsClosedChange = { _, _ -> },
+            onSuoraPalkkaChange = { _, _ -> },
+            onKiintoRullaChange = { _, _ -> },
+            onIrtorullanSijaintiChange = { _, _ -> }
+//            onMMDetailsChange = { _, _, _, _ , _, _-> }
         )
     }
 }

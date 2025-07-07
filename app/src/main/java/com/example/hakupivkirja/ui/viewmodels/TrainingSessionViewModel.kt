@@ -62,11 +62,11 @@ class TrainingSessionViewModel(
           dateMillis = System.currentTimeMillis(),
           shortDescription = "",
           dogName = "Testi",
-          alarmType = "",
+          alarmType = "haukku",
           notes = null,
           overallRating = null,
           difficultyRating = null,
-          trackLength = "100m"
+          trackLength = ""
         ),
         pistoStates = emptyMap(),
         selectedPistot = 3, // Default minimum
@@ -77,6 +77,38 @@ class TrainingSessionViewModel(
         error = null
       )
     }
+  }
+
+  fun updateHaukut(pistoIndex: Int, haukut: String) {
+    updateMMDetails(pistoIndex, haukut = haukut)
+  }
+
+  fun updateAvut(pistoIndex: Int, avut: String) {
+    updateMMDetails(pistoIndex, avut = avut)
+  }
+
+  fun updatePalkka(pistoIndex: Int, palkka: String) {
+    updateMMDetails(pistoIndex, palkka = palkka)
+  }
+
+  fun updateComeToMiddle(pistoIndex: Int, comeToMiddle: Boolean) {
+    updateMMDetails(pistoIndex, comeToMiddle = comeToMiddle)
+  }
+
+  fun updateIsClosed(pistoIndex: Int, isClosed: Boolean) {
+    updateMMDetails(pistoIndex, isClosed = isClosed)
+  }
+
+  fun updateSuoraPalkka(pistoIndex: Int, suoraPalkka: Boolean) {
+    updateMMDetails(pistoIndex, suoraPalkka = suoraPalkka)
+  }
+
+  fun updateIrtorullanSijainti(pistoIndex: Int, irtorullanSijainti: String) {
+    updateMMDetails(pistoIndex, irtorullanSijainti = irtorullanSijainti)
+  }
+
+  fun updateKiintoRulla(pistoIndex: Int, kiintoRulla: Boolean) {
+    updateMMDetails(pistoIndex, kiintoRulla = kiintoRulla)
   }
 
   fun updateSelectedDate(dateMillis: Long) {

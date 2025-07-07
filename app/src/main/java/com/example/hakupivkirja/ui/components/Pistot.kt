@@ -22,86 +22,176 @@ import com.example.hakupivkirja.model.PistoUiState
 
 @Composable
 fun Pisto(
-          pistoUiState: PistoUiState,
-          onHaukutChange: (String) -> Unit,
-          onAvutChange: (String) -> Unit,
-          onPalkkaChange: (String) -> Unit,
-          onComeToMiddleChange: (Boolean) -> Unit,
-          onIsClosedChange: (Boolean) -> Unit
-){
-    Column(
-        verticalArrangement = Arrangement.Bottom,
-        modifier = Modifier.padding(top = 4.dp)
+  pistoUiState: PistoUiState,
+  onHaukutChange: (String) -> Unit,
+  onAvutChange: (String) -> Unit,
+  onPalkkaChange: (String) -> Unit,
+  onComeToMiddleChange: (Boolean) -> Unit,
+  onIsClosedChange: (Boolean) -> Unit,
+  onSuoraPalkkaChange: (Boolean) -> Unit,
+  onKiintoRullaChange: (Boolean) -> Unit,
+  onIrtorullanSijaintiChange: (String) -> Unit,
+  sessionAlarmType: String?
+) {
+  Column(
+    verticalArrangement = Arrangement.Bottom,
+    modifier = Modifier.padding(top = 4.dp)
+  ) {
+
+    Row(
+      modifier = Modifier
+        .fillMaxWidth(),
+      verticalAlignment = Alignment.Top
     ) {
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.Top
-        ) {
-            AvutDropdown(selectedText = pistoUiState.avut ?: "",
-                onSelectedValueChange = { newValue ->
-                    onAvutChange(newValue)
-                },
-                modifier = Modifier
-                    .weight(0.3f)
-                    .widthIn(min = 60.dp, max = 90.dp)
-            )
-            PalkkaDropdown(
-                selectedText = pistoUiState.palkka ?: "",
-                onSelectedValueChange = { newValue ->
-                    onPalkkaChange(newValue)
-                },
-                modifier = Modifier
-                    .weight(0.3f)
-                    .widthIn(min = 65.dp, max = 100.dp)
-            )
-        }
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
-        ) {
-            OutlinedTextField(
-                value = pistoUiState.haukut ?: "",
-                onValueChange = { newValue ->
-                    if (newValue.toIntOrNull() != null || newValue.isEmpty()) {
-                        onHaukutChange(newValue)
-                    }
-                },
-                keyboardOptions = KeyboardOptions( // Keep only this one
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                label = { Text("Hau", fontSize = 11.sp) },
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = 55.dp)
-                    .padding(1.dp),
-            )
-            Column(
-                horizontalAlignment = Alignment.Start,
-                modifier = Modifier.weight(0.5f).padding(horizontal = 2.dp).padding(top = 3.dp)
-            ) {
-                Text("Sisääntulo", fontSize = 11.sp, lineHeight = 9.sp)
-              Checkbox(
-                checked = pistoUiState.comeToMiddle,
-                onCheckedChange = onComeToMiddleChange
-              )
+      AvutDropdown(
+        selectedText = pistoUiState.avut ?: "",
+        onSelectedValueChange = { newValue ->
+          onAvutChange(newValue)
+        },
+        modifier = Modifier
+            .weight(0.3f)
+            .widthIn(min = 60.dp, max = 90.dp)
+      )
+      PalkkaDropdown(
+        selectedText = pistoUiState.palkka ?: "",
+        onSelectedValueChange = { newValue ->
+          onPalkkaChange(newValue)
+        },
+        modifier = Modifier
+            .weight(0.3f)
+            .widthIn(min = 65.dp, max = 100.dp)
+      )
+    }
+    if (sessionAlarmType == "haukku") {
+      Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+      ) {
+        OutlinedTextField(
+          value = pistoUiState.haukut ?: "",
+          onValueChange = { newValue ->
+            if (newValue.toIntOrNull() != null || newValue.isEmpty()) {
+              onHaukutChange(newValue)
             }
-            Column(
-                horizontalAlignment = Alignment.End,
-                modifier = Modifier.weight(0.5f).padding(top = 3.dp)
-            ) {
-                Text("Umpipiilo", fontSize = 11.sp, lineHeight = 9.sp)
-                Checkbox(
-                    checked = pistoUiState.isClosed,
-                    onCheckedChange = onIsClosedChange
-                )
-            }
-
+          },
+          keyboardOptions = KeyboardOptions( // Keep only this one
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Done
+          ),
+          label = { Text("Hau", fontSize = 11.sp) },
+          modifier = Modifier
+              .weight(0.7f)
+              .heightIn(min = 55.dp)
+              .padding(1.dp),
+        )
+      }
+      Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier
+            .weight(0.5f)
+            .padding(horizontal = 2.dp)
+            .padding(top = 3.dp)
+      ) {
+        Text("Sisääntulo", fontSize = 11.sp, lineHeight = 9.sp)
+        Checkbox(
+          checked = pistoUiState.comeToMiddle,
+          onCheckedChange = onComeToMiddleChange
+        )
+      }
+      Column(
+        horizontalAlignment = Alignment.End,
+        modifier = Modifier
+            .weight(0.5f)
+            .padding(top = 3.dp)
+      ) {
+        Text("Umpipiilo", fontSize = 11.sp, lineHeight = 9.sp)
+        Checkbox(
+          checked = pistoUiState.isClosed,
+          onCheckedChange = onIsClosedChange
+        )
+      }
+    } else {
+      OutlinedTextField(
+        value = pistoUiState.irtorullanSijainti ?: "",
+        onValueChange = { newValue ->
+          if (newValue.toIntOrNull() != null || newValue.isEmpty()) {
+            onIrtorullanSijaintiChange(newValue)
+          }
+        },
+        keyboardOptions = KeyboardOptions( // Keep only this one
+          keyboardType = KeyboardType.Text,
+          imeAction = ImeAction.Done
+        ),
+        label = { Text("Irtorullan sijainti", fontSize = 11.sp) },
+        modifier = Modifier
+            .weight(1f)
+            .heightIn(min = 55.dp)
+            .padding(1.dp),
+      )
+      Row(
+          modifier = Modifier
+              .fillMaxWidth()
+              .heightIn(min = 64.dp)
+      ) {
+        Column(
+          horizontalAlignment = Alignment.Start,
+          modifier = Modifier
+              .weight(0.5f)
+              .padding(horizontal = 2.dp)
+              .padding(top = 3.dp)
+        ) {
+          Text("Sisääntulo", fontSize = 11.sp, lineHeight = 9.sp)
+          Checkbox(
+            checked = pistoUiState.comeToMiddle,
+            onCheckedChange = onComeToMiddleChange
+          )
         }
+        Column(
+          horizontalAlignment = Alignment.End,
+          modifier = Modifier
+              .weight(0.5f)
+              .padding(top = 3.dp)
+        ) {
+          Text("Umpipiilo", fontSize = 11.sp, lineHeight = 9.sp)
+          Checkbox(
+            checked = pistoUiState.isClosed,
+            onCheckedChange = onIsClosedChange
+          )
+        }
+        Column(
+          horizontalAlignment = Alignment.Start,
+          modifier = Modifier
+              .weight(0.5f)
+              .padding(horizontal = 2.dp)
+              .padding(top = 3.dp)
+        ) {
+          Text("Suorapalkka", fontSize = 11.sp, lineHeight = 9.sp)
+          Checkbox(
+            checked = pistoUiState.suoraPalkka,
+            onCheckedChange = onSuoraPalkkaChange
+          )
+        }
+        Column(
+          horizontalAlignment = Alignment.End,
+          modifier = Modifier
+              .weight(0.5f)
+              .padding(top = 3.dp)
+        ) {
+          Text("Kiintorulla", fontSize = 11.sp, lineHeight = 9.sp)
+          pistoUiState.kiintoRulla?.let {
+            Checkbox(
+              checked = it,
+              onCheckedChange = onKiintoRullaChange
+            )
+          }
+        }
+      }
 
     }
+
+  }
 }
 
