@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddTask
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
@@ -31,6 +34,14 @@ fun Valintarivi(
 ) {
     // Collect the uiState from the ViewModel
     val uiState by trainingSessionViewModel.uiState.collectAsState()
+    var showSaveTraining by remember { mutableStateOf(false) }
+
+    if (showSaveTraining) {
+        SaveTrainingSession(
+            trainingViewModel = trainingSessionViewModel,
+            onDismissRequest = { showSaveTraining = false },
+        )
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
@@ -61,10 +72,10 @@ fun Valintarivi(
 //            ) {
 //                Text(text = "Kirjaa")
 //            }
-            IconButton(onClick = {trainingSessionViewModel.saveTrainingSession()}
+            IconButton(onClick = {showSaveTraining = true}
             ) {
                 Icon(
-                    imageVector = Icons.Default.AddTask,
+                    imageVector = Icons.Default.Save,
                     contentDescription = "Kirjaa",
                     tint = MaterialTheme.colorScheme.primary
                 )

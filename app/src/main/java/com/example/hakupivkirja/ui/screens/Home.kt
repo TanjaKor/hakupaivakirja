@@ -19,8 +19,13 @@ import com.example.hakupivkirja.ui.components.UusiRata
 import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
-// NEXTSTEP: keksiikö Kirjausnappulalle FABin tms paremman ratkaisun?
+// NEXTSTEP:
+//viesti tallennuksen onnistumisesta
+//radiobuttoneiden tiedon kytkentä tietokantaan
 //Tarkista raportista onko tosiaan valmis kotisivu treenin suunnittelun osalta??
+// tietokantaan terrain lisäys
+// API säälle, Weather lisäys tietokantaan
+// parempi jako komponentteihin? Voi tehdä myöhemminkin, ei vaikuta käyttökokemukseen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

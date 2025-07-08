@@ -11,7 +11,7 @@ data class TrainingSession(
   @PrimaryKey(autoGenerate = true)
   val id: Long = 0,
   val dateMillis: Long = System.currentTimeMillis(), // Store date as Long (nullable to match your composable)
-  var shortDescription: String = "", // short description of the track when planning
+  var shortDescription: String? = "", // short description of the track when planning
   var dogName: String = "",
   var alarmType: String? = null, // e.g., "Bark", "Roll"
   var notes: String? = null, // Notes after the training

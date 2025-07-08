@@ -8,7 +8,7 @@ import com.example.hakupivkirja.model.dao.TrainingSessionDao
 
 @Database(
   entities = [PistoStateEntity::class, TrainingSession::class],
-  version = 5,
+  version = 7,
   exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun trainingSessionDao(): TrainingSessionDao

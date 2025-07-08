@@ -32,7 +32,7 @@ fun AppTopBar(trainingSessionViewModel: TrainingSessionViewModel) {
         IlmaisunValinta(
             uiState = uiState,
             onAlarmTypeChange = {alarmType ->
-        trainingSessionViewModel.updateAlarmType(alarmType,)},
+        trainingSessionViewModel.updateAlarmType(alarmType)},
             onDismissRequest = { showDialog = false },
         )
     }

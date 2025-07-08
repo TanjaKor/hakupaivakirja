@@ -88,13 +88,15 @@ fun UusiRata(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(leftPistoNumber.toString(), color = MaterialTheme.colorScheme.onSecondaryContainer) // pistonro
-                            Icon(
-                                Icons.Sharp.West,
-                                contentDescription = "takasin",
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier
-                                    .clickable { onPistoModeChange(leftPistoIndex, PistoMode.DEFAULT) }
-                            )
+                            if (leftPistoState.currentMode == PistoMode.MM || leftPistoState.currentMode == PistoMode.TYHJA) {
+                                Icon(
+                                    Icons.Sharp.West,
+                                    contentDescription = "takasin",
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier
+                                        .clickable { onPistoModeChange(leftPistoIndex, PistoMode.DEFAULT) }
+                                )
+                            }
                         }
                         Row(
                             modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 10.dp).padding(bottom = 8.dp),
@@ -174,14 +176,16 @@ fun UusiRata(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(rightPistoNumber.toString(), color = MaterialTheme.colorScheme.onSecondaryContainer) // pistonro
-                            Icon(
-                                Icons.Sharp.West,
-                                contentDescription = "takasin",
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .clickable { onPistoModeChange(rightPistoIndex, PistoMode.DEFAULT) }
-                            )
+                            if (rightPistoState.currentMode == PistoMode.MM || rightPistoState.currentMode == PistoMode.TYHJA) {
+                                Icon(
+                                    Icons.Sharp.West,
+                                    contentDescription = "takasin",
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp)
+                                        .clickable { onPistoModeChange(rightPistoIndex, PistoMode.DEFAULT) }
+                                )
+                            }
                         }
                         Row(
                             modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 10.dp).padding(bottom = 8.dp),

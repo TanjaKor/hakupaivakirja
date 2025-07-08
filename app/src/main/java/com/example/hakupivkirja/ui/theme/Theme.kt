@@ -1,6 +1,7 @@
 package com.example.hakupivkirja.ui.theme
 
 import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -259,6 +260,10 @@ fun HakupäiväkirjaTheme(
     dynamicColor: Boolean = false,
     content: @Composable() () -> Unit
 ) {
+    // Debug: Log the current theme state
+    Log.d("Theme", "Dark theme: $darkTheme")
+    Log.d("Theme", "System dark theme: ${isSystemInDarkTheme()}")
+
   val colorScheme = when {
       dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
           val context = LocalContext.current

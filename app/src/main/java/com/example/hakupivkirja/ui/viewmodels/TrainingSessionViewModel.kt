@@ -26,34 +26,112 @@ class TrainingSessionViewModel(
     initializeEmptyTrainingSession()
   }
 
-  // Save training session with pisto states to database
-  fun saveTrainingSession() {
+  // Save/update training session (works for both new and existing)
+  // Your main saving logic (can remain private or internal)
+  private fun saveTrainingSessionInternal(
+    trainingSession: TrainingSession,
+    pistoStates: List<PistoStateEntity>
+  ) {
     viewModelScope.launch {
+      setSaving(true)
+      setError(null)
       try {
-        setSaving(true)
-        setError(null)
+        Log.d("ViewModelSave", "Before repo call. Session ID: ${trainingSession.id}, Desc: ${trainingSession.shortDescription}") // Log input
+        // Call repository and get the saved session back (with its correct ID)
+        val savedSessionFromDb = repository.saveTrainingSession(trainingSession, pistoStates)
+        Log.d("ViewModelSave", "After repo call. DB Session ID: ${savedSessionFromDb.id}, Desc: ${savedSessionFromDb.shortDescription}") // Log output
 
-        val session = _uiState.value.currentTrainingSession
-        val pistoStates = convertToEntityStates()
-
-        if (session != null) {
-          Log.d("ViewModelSave", "Attempting to save. currentTrainingSession.trackLength = '${session.trackLength}', Full session: $session")
+        _uiState.update { currentState ->
+          Log.d("ViewModelSave", "Updating UI State. Current ID before update: ${currentState.currentTrainingSession?.id}")
+          currentState.copy(
+            isSaving = false,
+            currentTrainingSession = savedSessionFromDb, // <--- UPDATE THE STATE
+            error = null // Clear previous error on success
+            // saveSuccess = true // You might have a flag for UI to react
+          )
         }
-
-
-        if (session != null) {
-          repository.saveTrainingSession(session, pistoStates)
-          Log.d("ViewModelSave", "Repository call completed.")
-        }
-
+        Log.d("ViewModelSave", "UI State potentially updated. New current ID: ${_uiState.value.currentTrainingSession?.id}")
+        // Consider what should happen in the UI after save for both plan and completed
+        // Maybe emit a one-time event to navigate or show a message
       } catch (e: Exception) {
+        Log.e("ViewModelSave", "Error saving session: ${e.message}", e)
         setError("Failed to save training session: ${e.message}")
-      } finally {
         setSaving(false)
+      } finally {
+        if (_uiState.value.isSaving) {
+          Log.d("ViewModelSave", "Finally block: Resetting isSaving.")
+          setSaving(false)
+        }
       }
     }
   }
 
+  fun saveTrainingPlan() {
+    val currentSession = _uiState.value.currentTrainingSession
+
+    if (currentSession != null) {
+      // Create a 'plan' version of the session:
+      // Keep essential details, but clear out fields meant for completed training.
+      val planSession = currentSession.copy(
+        notes = null, // Or empty string, depending on your preference/DB
+        overallRating = null,
+        difficultyRating = null,
+        // Add any other fields that should be cleared for a "plan"
+        // e.g., weather data if it's only recorded post-training
+      )
+      val pistoEntities = convertToEntityStates() // Pass the current pisto UI states
+
+      saveTrainingSessionInternal(planSession, pistoEntities)
+    } else {
+      setError("Cannot save plan: No current session.")
+    }
+  }
+
+  fun saveCompletedTraining() {
+    val completedSession = _uiState.value.currentTrainingSession // This session should have notes, ratings etc. filled by the user
+
+    if (completedSession != null) {
+      val pistoEntities = convertToEntityStates()
+      saveTrainingSessionInternal(completedSession, pistoEntities)
+    } else {
+      setError("Cannot save training: No current session.")
+    }
+  }
+
+//
+//  // Save training session with pisto states to database
+//  fun saveTrainingSession() {
+//    viewModelScope.launch {
+//      try {
+//        setSaving(true)
+//        setError(null)
+//
+//        val session = _uiState.value.currentTrainingSession
+//        val pistoStates = convertToEntityStates()
+//
+//        if (session != null) {
+//          Log.d("ViewModelSave", "Attempting to save. currentTrainingSession.trackLength = '${session.trackLength}', Full session: $session")
+//        }
+//
+//
+//        if (session != null) {
+//          repository.saveTrainingSession(session, pistoStates)
+//          Log.d("ViewModelSave", "Repository call completed.")
+//        }
+//
+//      } catch (e: Exception) {
+//        setError("Failed to save training session: ${e.message}")
+//      } finally {
+//        setSaving(false)
+//      }
+//    }
+//  }
+
+  fun updateTrainingSession(trainingSession: TrainingSession) {
+    _uiState.update { currentState ->
+      currentState.copy(currentTrainingSession = trainingSession)
+    }
+  }
   // Initialize a new empty training session
   fun initializeEmptyTrainingSession() {
     _uiState.update {
@@ -207,6 +285,16 @@ class TrainingSessionViewModel(
         suoraPalkka = suoraPalkka ?: pisto.suoraPalkka,
         kiintoRulla = kiintoRulla ?: pisto.kiintoRulla,
         irtorullanSijainti = irtorullanSijainti?.trim() ?: pisto.irtorullanSijainti,
+      )
+    }
+  }
+
+  fun updateNotes(newNotes: String) {
+    _uiState.update { currentState ->
+      currentState.copy(
+        currentTrainingSession = currentState.currentTrainingSession?.copy(
+          notes = newNotes
+        )
       )
     }
   }
