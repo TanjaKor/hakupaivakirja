@@ -46,8 +46,8 @@ class TrainingSessionViewModel(
           currentState.copy(
             isSaving = false,
             currentTrainingSession = savedSessionFromDb, // <--- UPDATE THE STATE
-            error = null // Clear previous error on success
-            // saveSuccess = true // You might have a flag for UI to react
+            error = null, // Clear previous error on success
+            saveSuccessMessage = true // You might have a flag for UI to react
           )
         }
         Log.d("ViewModelSave", "UI State potentially updated. New current ID: ${_uiState.value.currentTrainingSession?.id}")
@@ -63,6 +63,12 @@ class TrainingSessionViewModel(
           setSaving(false)
         }
       }
+    }
+  }
+  // Function to be called by the UI after the message has been shown
+  fun saveMessageShown() {
+    _uiState.update { currentState ->
+      currentState.copy(saveSuccessMessage = false)
     }
   }
 

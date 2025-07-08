@@ -12,4 +12,5 @@ data class TrainingSessionUiState(
   val maxPistot: Int = 3,
   val alarmType: String? = null,
   val dogName: String? = "",
+  val saveSuccessMessage: Boolean = false
 )

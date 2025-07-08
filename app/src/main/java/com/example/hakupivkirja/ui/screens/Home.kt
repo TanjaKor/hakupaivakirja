@@ -20,8 +20,9 @@ import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
 // NEXTSTEP:
-//viesti tallennuksen onnistumisesta
 //radiobuttoneiden tiedon kytkentä tietokantaan
+//dialogin poistuminen klikkaamalla buttonia
+//+ viestin häviämisen varmistus
 //Tarkista raportista onko tosiaan valmis kotisivu treenin suunnittelun osalta??
 // tietokantaan terrain lisäys
 // API säälle, Weather lisäys tietokantaan

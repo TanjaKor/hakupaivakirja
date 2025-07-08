@@ -18,9 +18,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +49,22 @@ fun SaveTrainingSession(
 
   val uiState by trainingViewModel.uiState.collectAsState()
   var showTrainingDetails by remember { mutableStateOf(false) }
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  LaunchedEffect(uiState.saveSuccessMessage) {
+    if (uiState.saveSuccessMessage) {
+      snackbarHostState.showSnackbar(
+        message = "Tallennettu!",
+        duration = SnackbarDuration.Short
+      ).let {
+        // After snackbar is shown (or dismissed), reset flag and dismiss dialog
+        trainingViewModel.saveMessageShown()
+        onDismissRequest() // Dismiss the dialog
+      }
+    }
+  }
+
+  // Effect to show error Snackbar
 
   Dialog(
     onDismissRequest = {onDismissRequest()}
@@ -81,6 +101,7 @@ fun SaveTrainingSession(
         if (showTrainingDetails) {
           TrainingDetails(uiState = uiState, trainingSessionViewModel = trainingViewModel)
         }
+        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.CenterHorizontally))
       }
 
     }
@@ -88,7 +109,12 @@ fun SaveTrainingSession(
 }
 
 @Composable
-fun TrainingDetails(uiState: TrainingSessionUiState, trainingSessionViewModel: TrainingSessionViewModel) {
+fun TrainingDetails(
+  uiState: TrainingSessionUiState,
+  trainingSessionViewModel: TrainingSessionViewModel) {
+
+
+
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
     Text(text = "Sää: tähän APISTA sää")
     OutlinedTextField(
@@ -128,7 +154,8 @@ fun TrainingDetails(uiState: TrainingSessionUiState, trainingSessionViewModel: T
 fun RatingCard(title: String, options: List<Int>, modifier: Modifier) {
   Card(modifier = modifier
     .padding(4.dp)
-    .border(1.dp, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp)
+    .border(
+      1.dp, MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp)
     )
   ) {
     Text(text = title, textAlign = TextAlign.Center, modifier = Modifier.padding(2.dp))

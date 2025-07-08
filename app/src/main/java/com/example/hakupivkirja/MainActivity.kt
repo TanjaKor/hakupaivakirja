@@ -12,7 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.hakupivkirja.model.repository.HakupivkirjaRepository
@@ -36,12 +43,30 @@ class MainActivity : ComponentActivity() {
         repository = RepositoryProvider.provideRepository(this)
         enableEdgeToEdge()
         setContent {
+            // Hoist SnackbarHostState
+            val snackbarHostState = remember { SnackbarHostState() }
+            // Collect UiState here to observe changes for the Snackbar
+            val uiState by trainingSessionViewModel.uiState.collectAsState()
+
+            LaunchedEffect(uiState.saveSuccessMessage) {
+                if (uiState.saveSuccessMessage) {
+                    snackbarHostState.showSnackbar(
+                        message = "Treeni tallennettu!", // Your desired message
+                        duration = SnackbarDuration.Short
+                    )
+                    trainingSessionViewModel.saveMessageShown() // Reset the flag in ViewModel
+                }
+            }
             HakupäiväkirjaTheme {
                 Scaffold(
-                    topBar = { AppTopBar(trainingSessionViewModel = trainingSessionViewModel) }
+                    topBar = { AppTopBar(trainingSessionViewModel = trainingSessionViewModel) },
+                    snackbarHost = { SnackbarHost(snackbarHostState) }
                 ) { innerPadding ->
                     App(
-                        modifier = Modifier.padding(innerPadding).background(MaterialTheme.colorScheme.surface), viewModel = trainingSessionViewModel
+                        modifier = Modifier
+                            .padding(innerPadding)
+                            .background(MaterialTheme.colorScheme.surface),
+                        viewModel = trainingSessionViewModel
                     )
                 }
             }
