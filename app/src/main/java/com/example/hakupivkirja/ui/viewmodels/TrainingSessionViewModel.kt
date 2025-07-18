@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.hakupivkirja.model.PistoMode
 import com.example.hakupivkirja.model.PistoStateEntity
 import com.example.hakupivkirja.model.PistoUiState
+import com.example.hakupivkirja.model.Terrain
 import com.example.hakupivkirja.model.TrainingSession
 import com.example.hakupivkirja.model.TrainingSessionUiState
 import com.example.hakupivkirja.model.repository.HakupivkirjaRepository
@@ -28,24 +29,34 @@ class TrainingSessionViewModel(
 
   // Save/update training session (works for both new and existing)
   // Your main saving logic (can remain private or internal)
-  private fun saveTrainingSessionInternal(
+  private fun saveTrainingSessionWithTerrainInternal(
     trainingSession: TrainingSession,
-    pistoStates: List<PistoStateEntity>
+    pistoStates: List<PistoStateEntity>,
+    terrain: Terrain? = null
   ) {
     viewModelScope.launch {
       setSaving(true)
       setError(null)
       try {
-        Log.d("ViewModelSave", "Before repo call. Session ID: ${trainingSession.id}, Desc: ${trainingSession.shortDescription}") // Log input
+        Log.d("ViewModelSave", "Before repo call. Session ID: ${trainingSession.id}, Desc: ${trainingSession.shortDescription}, Terrain: Forest${terrain?.forestThickness}") // Log input
         // Call repository and get the saved session back (with its correct ID)
-        val savedSessionFromDb = repository.saveTrainingSession(trainingSession, pistoStates)
-        Log.d("ViewModelSave", "After repo call. DB Session ID: ${savedSessionFromDb.id}, Desc: ${savedSessionFromDb.shortDescription}") // Log output
+        val (savedSessionFromDb, savedTerrainFromDb) = repository.saveTrainingSessionWithTerrain(
+        trainingSession,
+        pistoStates,
+        terrain
+        )
+
+        Log.d(
+          "ViewModelSave",
+          "After repo call. DB Session ID: ${savedSessionFromDb.id}, DB Terrain ID: ${savedTerrainFromDb?.id}"
+        )
 
         _uiState.update { currentState ->
           Log.d("ViewModelSave", "Updating UI State. Current ID before update: ${currentState.currentTrainingSession?.id}")
           currentState.copy(
             isSaving = false,
-            currentTrainingSession = savedSessionFromDb, // <--- UPDATE THE STATE
+            currentTrainingSession = savedSessionFromDb,
+            terrain = savedTerrainFromDb,
             error = null, // Clear previous error on success
             saveSuccessMessage = true // You might have a flag for UI to react
           )
@@ -87,24 +98,57 @@ class TrainingSessionViewModel(
       )
       val pistoEntities = convertToEntityStates() // Pass the current pisto UI states
 
-      saveTrainingSessionInternal(planSession, pistoEntities)
+      saveTrainingSessionWithTerrainInternal(planSession, pistoEntities, null)
     } else {
       setError("Cannot save plan: No current session.")
     }
   }
 
-  fun saveCompletedTraining() {
-    val completedSession = _uiState.value.currentTrainingSession // This session should have notes, ratings etc. filled by the user
+  fun saveCompletedTraining(
+    rating: Int,
+    difficulty: Int,
+    notes: String,
+    forestThickness: Int,
+    moistureLevel: Int,
+    altitudeChanges: Int
+  ) {
+    val currentSession = _uiState.value.currentTrainingSession
+    if (currentSession != null) {
+      val completedSession = currentSession.copy(
+        notes = notes,
+        overallRating = rating,
+        difficultyRating = difficulty
+      )
 
-    if (completedSession != null) {
+      // Create the Terrain object.
+      // The trainingSessionId will be set by the repository after the session is saved.
+      val terrainDetails = Terrain(
+        trainingSessionId = null, // Will be updated by repository
+        forestThickness = forestThickness,
+        altitudeChanges = altitudeChanges,
+        moistureLevel = moistureLevel
+      )
+
       val pistoEntities = convertToEntityStates()
-      saveTrainingSessionInternal(completedSession, pistoEntities)
+      saveTrainingSessionWithTerrainInternal(completedSession, pistoEntities, terrainDetails)
+
     } else {
       setError("Cannot save training: No current session.")
     }
+//    val completedSession = _uiState.value.currentTrainingSession?.copy(
+//      overallRating = rating,
+//      difficultyRating = difficulty,
+//      notes = notes
+//    ) // This session should have notes, ratings etc. filled by the user
+
+//    if (completedSession != null) {
+//      val pistoEntities = convertToEntityStates()
+//      saveTrainingSessionInternal(completedSession, pistoEntities, terraindata)
+//    } else {
+//      setError("Cannot save training: No current session.")
+//    }
   }
 
-//
 //  // Save training session with pisto states to database
 //  fun saveTrainingSession() {
 //    viewModelScope.launch {
@@ -133,11 +177,11 @@ class TrainingSessionViewModel(
 //    }
 //  }
 
-  fun updateTrainingSession(trainingSession: TrainingSession) {
-    _uiState.update { currentState ->
-      currentState.copy(currentTrainingSession = trainingSession)
-    }
-  }
+//  fun updateTrainingSession(trainingSession: TrainingSession) {
+//    _uiState.update { currentState ->
+//      currentState.copy(currentTrainingSession = trainingSession)
+//    }
+//  }
   // Initialize a new empty training session
   fun initializeEmptyTrainingSession() {
     _uiState.update {
@@ -295,16 +339,6 @@ class TrainingSessionViewModel(
     }
   }
 
-  fun updateNotes(newNotes: String) {
-    _uiState.update { currentState ->
-      currentState.copy(
-        currentTrainingSession = currentState.currentTrainingSession?.copy(
-          notes = newNotes
-        )
-      )
-    }
-  }
-
   // Get a specific pisto's state
   fun getPistoState(pistoIndex: Int): PistoUiState? {
     return _uiState.value.pistoStates[pistoIndex]
@@ -355,7 +389,7 @@ class TrainingSessionViewModel(
         decoyPraisesDirectly = uiState.suoraPalkka,
         isRollSolid = uiState.kiintoRulla,
         rollPositionWithDecoy = uiState.irtorullanSijainti,
-        isClosed = uiState.isClosed ?: false,
+        isClosed = uiState.isClosed,
         comeToMiddle = uiState.comeToMiddle,
         trainingSessionId = 0L // Will be set by Room after TrainingSession is inserted
       )

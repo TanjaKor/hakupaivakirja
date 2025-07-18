@@ -1,5 +1,7 @@
 package com.example.hakupivkirja.model
 
+import java.time.LocalDate
+
 data class TrainingSessionUiState(
   val currentTrainingSession: TrainingSession? = TrainingSession(),
   val currentTrackId: Long? = null,
@@ -12,5 +14,9 @@ data class TrainingSessionUiState(
   val maxPistot: Int = 3,
   val alarmType: String? = null,
   val dogName: String? = "",
-  val saveSuccessMessage: Boolean = false
-)
+  val saveSuccessMessage: Boolean = false,
+  val selectedDate: LocalDate? = null,
+  val overallRating: Int? = null,
+  val difficultyRating: Int? = null,
+  val terrain: Terrain? = null
+  )

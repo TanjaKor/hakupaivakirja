@@ -2,19 +2,18 @@ package com.example.hakupivkirja.model.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
-import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.example.hakupivkirja.model.Terrain
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TerrainDao {
-  @Query("SELECT * FROM terrain_details WHERE trainingSessionId = :sessionId")
-  fun getTerrainBySessionId(sessionId: Long): Flow<Terrain?>
+  @Query("SELECT * FROM terrain_details WHERE trainingSessionId = :sessionId LIMIT 1")
+  suspend fun getTerrainBySessionId(sessionId: Long): Terrain?
 
-  @Insert
-  suspend fun insertTerrain(terrain: Terrain)
+  @Upsert
+  suspend fun upsertTerrain(terrain: Terrain): Long
 
   @Update
   suspend fun updateTerrain(terrain: Terrain)

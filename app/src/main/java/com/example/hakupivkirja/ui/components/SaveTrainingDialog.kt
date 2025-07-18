@@ -83,7 +83,7 @@ fun SaveTrainingSession(
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Text(
-          text = "Haluatko tallentaa suunnitelman vai tehtynä treeninä?",
+          text = "Haluatko tallentaa suunnitelman vai tehdyn treenin?",
           textAlign = TextAlign.Center,
         )
         if (!showTrainingDetails) {
@@ -99,7 +99,7 @@ fun SaveTrainingSession(
           }
         }
         if (showTrainingDetails) {
-          TrainingDetails(uiState = uiState, trainingSessionViewModel = trainingViewModel)
+          TrainingDetails(uiState = uiState, trainingSessionViewModel = trainingViewModel, onSaveCompleted = {showTrainingDetails = false})
         }
         SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.CenterHorizontally))
       }
@@ -111,18 +111,24 @@ fun SaveTrainingSession(
 @Composable
 fun TrainingDetails(
   uiState: TrainingSessionUiState,
-  trainingSessionViewModel: TrainingSessionViewModel) {
-
-
+  trainingSessionViewModel: TrainingSessionViewModel,
+  onSaveCompleted: () -> Unit
+) {
+  // States for rating and notes
+  var selectedRating by remember { mutableStateOf(uiState.currentTrainingSession?.overallRating ?: 1) } // Default to 1 or value from uiState
+  var selectedDifficulty by remember { mutableStateOf(uiState.currentTrainingSession?.difficultyRating ?: 1) } // Default to 1 or value from uiState
+  var notes by remember { mutableStateOf(uiState.currentTrainingSession?.notes ?: "") }
+  // States for Terrain
+  var selectedCoverage by remember { mutableStateOf(uiState.terrain?.forestThickness ?: 1) }
+  var selectedMoisture by remember { mutableStateOf(uiState.terrain?.moistureLevel ?: 1) }
+  var selectedAltitudeChanges by remember { mutableStateOf(uiState.terrain?.altitudeChanges ?: 1) }
 
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
     Text(text = "Sää: tähän APISTA sää")
     OutlinedTextField(
-      value = uiState.currentTrainingSession?.notes ?: "",
+      value = notes,
       onValueChange = { newNotes ->
-        // text = newDescription // (2) DON'T update local 'text' state
-        // INSTEAD, update ViewModel state
-        trainingSessionViewModel.updateNotes(newNotes) //
+       notes = newNotes
       },
       keyboardOptions = KeyboardOptions( // Keep only this one
         keyboardType = KeyboardType.Text,
@@ -134,15 +140,55 @@ fun TrainingDetails(
         .padding(4.dp)
     )
     Row {
-      RatingCard("Peittävyys", listOf(1,2,3), Modifier.weight(0.9f))
-      RatingCard("Kosteus", listOf(1,2,3),Modifier.weight(0.8f))
-      RatingCard("Korkeuserot", listOf(1,2,3),Modifier.weight(1f))
+      RatingCard(
+        title = "Peittävyys",
+        options = listOf(1,2,3),
+        selectedOption = selectedCoverage,
+        onOptionSelected = { selectedCoverage = it },
+        modifier = Modifier.weight(0.9f)
+      )
+      RatingCard(
+        title ="Kosteus",
+        options =listOf(1,2,3),
+        selectedOption = selectedMoisture,
+        onOptionSelected = { selectedMoisture = it },
+        modifier =Modifier.weight(0.8f)
+      )
+      RatingCard(
+        title ="Korkeuserot",
+        options = listOf(1,2,3),
+        selectedOption = selectedAltitudeChanges,
+        onOptionSelected = { selectedAltitudeChanges = it },
+        modifier =Modifier.weight(1f)
+      )
     }
     Row {
-      RatingCard("Arvosana", listOf(1,2,3,4,5), Modifier.weight(1f))
-      RatingCard("Vaikeusaste", listOf(1,2,3,4,5),Modifier.weight(1f))
+      RatingCard(
+        title = "Arvosana",
+        options = listOf(1, 2, 3, 4, 5),
+        selectedOption = selectedRating,
+        onOptionSelected = { selectedRating = it },
+        modifier = Modifier.weight(1f)
+      )
+      RatingCard(
+        title ="Vaikeusaste",
+        options = listOf(1,2,3,4,5),
+        selectedOption = selectedDifficulty,
+        onOptionSelected = { selectedDifficulty = it },
+        modifier = Modifier.weight(1f)
+      )
     }
-    Button(onClick = {trainingSessionViewModel.saveCompletedTraining()})
+    Button(onClick = {
+      trainingSessionViewModel.saveCompletedTraining(
+        rating = selectedRating,
+        difficulty = selectedDifficulty,
+        notes = notes,
+        forestThickness = selectedCoverage,
+        moistureLevel = selectedMoisture,
+        altitudeChanges = selectedAltitudeChanges
+      )
+      onSaveCompleted()
+    })
     {
       Text(text = "Valmis")
     }
@@ -151,7 +197,12 @@ fun TrainingDetails(
 
 
 @Composable
-fun RatingCard(title: String, options: List<Int>, modifier: Modifier) {
+fun RatingCard(
+  title: String,
+  options: List<Int>,
+  selectedOption: Int,
+  onOptionSelected: (Int) -> Unit,
+  modifier: Modifier) {
   Card(modifier = modifier
     .padding(4.dp)
     .border(
@@ -159,37 +210,45 @@ fun RatingCard(title: String, options: List<Int>, modifier: Modifier) {
     )
   ) {
     Text(text = title, textAlign = TextAlign.Center, modifier = Modifier.padding(2.dp))
-    RadioButtons(options, modifier = Modifier)
+    RadioButtons(
+      options = options,
+      selectedOption = selectedOption,
+      onOptionSelected = onOptionSelected,
+      modifier = Modifier)
   }
 }
 
 @Composable
-fun RadioButtons(options: List<Int>, modifier: Modifier = Modifier) {
+fun RadioButtons(
+  options: List<Int>,
+  selectedOption: Int,
+  onOptionSelected: (Int) -> Unit,
+  modifier: Modifier = Modifier
+) {
   val radioOptions = options
-  val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[0]) }
+
   // Note that Modifier.selectableGroup() is essential to ensure correct accessibility behavior
   Column(modifier.selectableGroup()) {
-    radioOptions.forEach { text ->
+    radioOptions.forEach { optionValue ->
       Row(
         Modifier
           .height(56.dp)
           .selectable(
-            selected = (text == selectedOption),
-            onClick = { onOptionSelected(text) },
+            selected = (optionValue == selectedOption),
+            onClick = { onOptionSelected(optionValue) },
             role = Role.RadioButton
           )
           .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
       ) {
         RadioButton(
-          selected = (text == selectedOption),
+          selected = (optionValue == selectedOption),
           onClick = null // null recommended for accessibility with screen readers
         )
         Text(
-          text = text.toString(),
+          text = optionValue.toString(),
           style = MaterialTheme.typography.bodyLarge,
           modifier = Modifier.padding(start = 16.dp)
-
         )
       }
     }

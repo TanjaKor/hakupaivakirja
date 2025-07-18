@@ -92,9 +92,7 @@ fun Pisto(
         OutlinedTextField(
             value = pistoUiState.irtorullanSijainti ?: "",
             onValueChange = { newValue ->
-                if (newValue.toIntOrNull() != null || newValue.isEmpty()) {
                     onIrtorullanSijaintiChange(newValue)
-                }
             },
             keyboardOptions = KeyboardOptions( // Keep only this one
                 keyboardType = KeyboardType.Text,

@@ -7,8 +7,9 @@ object RepositoryProvider {
   fun provideRepository(context: Context): HakupivkirjaRepository {
     return try {
       val database = AppDatabase.getDatabase(context.applicationContext)
-      val dao = database.trainingSessionDao()
-      HakupivkirjaRepositoryImpl(trainingSessionDao = dao)
+      val trainingSessionDao = database.trainingSessionDao()
+      val terrainDao = database.terrainDao()
+      HakupivkirjaRepositoryImpl(trainingSessionDao = trainingSessionDao, terrainDao = terrainDao)
     } catch (e: Exception) {
       throw RuntimeException("Failed to initialize repository. See Logcat for details.", e)
     }
