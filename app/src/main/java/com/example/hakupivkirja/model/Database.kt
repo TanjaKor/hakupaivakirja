@@ -6,15 +6,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.hakupivkirja.model.dao.TerrainDao
 import com.example.hakupivkirja.model.dao.TrainingSessionDao
+import com.example.hakupivkirja.model.dao.WeatherDao
 
 @Database(
-  entities = [PistoStateEntity::class, TrainingSession::class, Terrain::class],
-  version = 8,
+  entities = [PistoStateEntity::class, TrainingSession::class, Terrain::class, WeatherEntity::class],
+  version = 9,
   exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun trainingSessionDao(): TrainingSessionDao
   abstract fun terrainDao(): TerrainDao
-
+  abstract fun weatherDao(): WeatherDao
 
   companion object {
     @Volatile

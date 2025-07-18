@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -32,6 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -114,6 +119,11 @@ fun TrainingDetails(
   trainingSessionViewModel: TrainingSessionViewModel,
   onSaveCompleted: () -> Unit
 ) {
+  //state for location
+  var trainingLocation by remember { mutableStateOf("")}
+  val focusManager = LocalFocusManager.current
+  var weatherData by remember { mutableStateOf("") }
+  var isLoadingWeather by remember { mutableStateOf(false) }
   // States for rating and notes
   var selectedRating by remember { mutableStateOf(uiState.currentTrainingSession?.overallRating ?: 1) } // Default to 1 or value from uiState
   var selectedDifficulty by remember { mutableStateOf(uiState.currentTrainingSession?.difficultyRating ?: 1) } // Default to 1 or value from uiState
@@ -123,14 +133,68 @@ fun TrainingDetails(
   var selectedMoisture by remember { mutableStateOf(uiState.terrain?.moistureLevel ?: 1) }
   var selectedAltitudeChanges by remember { mutableStateOf(uiState.terrain?.altitudeChanges ?: 1) }
 
+  // Function to fetch weather data
+  fun fetchWeatherData(location: String) {
+    if (location.isNotBlank()) {
+      isLoadingWeather = true
+      // Call your weather API here
+      trainingSessionViewModel.fetchWeatherData(location) { weather ->
+        weatherData = weather
+        isLoadingWeather = false
+      }
+    }
+  }
+
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    Text(text = "Sää: tähän APISTA sää")
+    OutlinedTextField(
+      value = trainingLocation,
+      onValueChange = { trainingLocation = it },
+      label = { Text("Treenipaikka")},
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(4.dp)
+        .onFocusChanged { focusState ->
+          // Fetch weather when field loses focus and has text
+          if (!focusState.isFocused && trainingLocation.isNotBlank()) {
+            fetchWeatherData(trainingLocation)
+          }
+        },
+      keyboardOptions = KeyboardOptions(
+        imeAction = ImeAction.Done
+      ),
+      keyboardActions = KeyboardActions(
+        onDone = {
+          // Fetch weather when Done button is pressed
+          if (trainingLocation.isNotBlank()) {
+            fetchWeatherData(trainingLocation)
+          }
+          focusManager.clearFocus() // Hide keyboard
+        }
+      )
+    )
+    Text(text = "Sää: ")
+    when {
+      isLoadingWeather -> {
+        CircularProgressIndicator(
+          modifier = Modifier.size(16.dp),
+          strokeWidth = 2.dp
+        )
+      }
+
+      weatherData.isNotBlank() -> {
+        Text(text = weatherData)
+      }
+
+      else -> {
+        Text(text = "Syötä sijainti saadaksesi säätiedot")
+      }
+    }
     OutlinedTextField(
       value = notes,
       onValueChange = { newNotes ->
        notes = newNotes
       },
-      keyboardOptions = KeyboardOptions( // Keep only this one
+      keyboardOptions = KeyboardOptions(
         keyboardType = KeyboardType.Text,
         imeAction = ImeAction.Done
       ),

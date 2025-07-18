@@ -1,6 +1,8 @@
 package com.example.hakupivkirja.ui.viewmodels
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hakupivkirja.model.PistoMode
@@ -9,7 +11,10 @@ import com.example.hakupivkirja.model.PistoUiState
 import com.example.hakupivkirja.model.Terrain
 import com.example.hakupivkirja.model.TrainingSession
 import com.example.hakupivkirja.model.TrainingSessionUiState
+import com.example.hakupivkirja.model.WeatherEntity
 import com.example.hakupivkirja.model.repository.HakupivkirjaRepository
+import com.example.hakupivkirja.model.repository.WeatherRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,11 +22,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TrainingSessionViewModel(
-  private val repository: HakupivkirjaRepository
+  private val repository: HakupivkirjaRepository,
+  private val weatherRepository: WeatherRepository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(TrainingSessionUiState())
   val uiState: StateFlow<TrainingSessionUiState> = _uiState.asStateFlow()
+
+  private val _weatherState = MutableLiveData<WeatherEntity?>()
+  val weatherState: LiveData<WeatherEntity?> = _weatherState
 
   init {
     initializeEmptyTrainingSession()
@@ -135,53 +144,38 @@ class TrainingSessionViewModel(
     } else {
       setError("Cannot save training: No current session.")
     }
-//    val completedSession = _uiState.value.currentTrainingSession?.copy(
-//      overallRating = rating,
-//      difficultyRating = difficulty,
-//      notes = notes
-//    ) // This session should have notes, ratings etc. filled by the user
-
-//    if (completedSession != null) {
-//      val pistoEntities = convertToEntityStates()
-//      saveTrainingSessionInternal(completedSession, pistoEntities, terraindata)
-//    } else {
-//      setError("Cannot save training: No current session.")
-//    }
   }
 
-//  // Save training session with pisto states to database
-//  fun saveTrainingSession() {
-//    viewModelScope.launch {
-//      try {
-//        setSaving(true)
-//        setError(null)
-//
-//        val session = _uiState.value.currentTrainingSession
-//        val pistoStates = convertToEntityStates()
-//
-//        if (session != null) {
-//          Log.d("ViewModelSave", "Attempting to save. currentTrainingSession.trackLength = '${session.trackLength}', Full session: $session")
-//        }
-//
-//
-//        if (session != null) {
-//          repository.saveTrainingSession(session, pistoStates)
-//          Log.d("ViewModelSave", "Repository call completed.")
-//        }
-//
-//      } catch (e: Exception) {
-//        setError("Failed to save training session: ${e.message}")
-//      } finally {
-//        setSaving(false)
-//      }
-//    }
-//  }
+  fun fetchWeatherData(location: String, onResult: (String) -> Unit) {
+    viewModelScope.launch {
+      try {
+        // Replace with your actual weather API call
+        val weatherInfo = getWeatherForLocation(location)
+        onResult(weatherInfo)
+      } catch (e: Exception) {
+        onResult("Säätietoja ei saatavilla")
+      }
+    }
+  }
 
-//  fun updateTrainingSession(trainingSession: TrainingSession) {
-//    _uiState.update { currentState ->
-//      currentState.copy(currentTrainingSession = trainingSession)
-//    }
-//  }
+  private suspend fun getWeatherForLocation(location: String): String {
+    // This is where you'd call your weather API
+    // Example with OpenWeatherMap API:
+    /*
+    val apiKey = "YOUR_API_KEY"
+    val url = "https://api.openweathermap.org/data/2.5/weather?q=$location&appid=$apiKey&units=metric"
+
+    return withContext(Dispatchers.IO) {
+        // Make HTTP request and parse response
+        // Return formatted weather string like "15°C, Pilvipouta"
+    }
+    */
+
+    // For now, return a placeholder
+    delay(1000) // Simulate network delay
+    return "15°C, Pilvipouta" // Placeholder weather data
+  }
+
   // Initialize a new empty training session
   fun initializeEmptyTrainingSession() {
     _uiState.update {

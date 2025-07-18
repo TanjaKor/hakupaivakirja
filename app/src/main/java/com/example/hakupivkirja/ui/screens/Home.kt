@@ -20,6 +20,7 @@ import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
 // NEXTSTEP:
+//weather on lisätty tietokantaan, retrofit yms valmisteltu, mutta yhteyttä ei vielä ole.
 // API säälle, Weather lisäys tietokantaan
 // parempi jako komponentteihin? Voi tehdä myöhemminkin, ei vaikuta käyttökokemukseen
 

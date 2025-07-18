@@ -17,7 +17,7 @@ import androidx.room.PrimaryKey
     )
   ]
 )
-data class Weather(
+data class WeatherEntity(
   @PrimaryKey(autoGenerate = true)
   val id: Long = 0,
   @ColumnInfo(name = "trainingSessionId")

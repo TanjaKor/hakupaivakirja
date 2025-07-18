@@ -6,12 +6,14 @@ import com.example.hakupivkirja.model.Terrain
 import com.example.hakupivkirja.model.TrainingSession
 import com.example.hakupivkirja.model.dao.TerrainDao
 import com.example.hakupivkirja.model.dao.TrainingSessionDao
+import com.example.hakupivkirja.model.dao.WeatherDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class HakupivkirjaRepositoryImpl(
   private val trainingSessionDao: TrainingSessionDao,
-  private val terrainDao: TerrainDao
+  private val terrainDao: TerrainDao,
+  private val weatherDao: WeatherDao
 ) : HakupivkirjaRepository {
 
   override suspend fun saveTrainingSession(
