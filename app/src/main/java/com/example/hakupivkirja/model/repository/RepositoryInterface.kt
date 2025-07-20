@@ -3,6 +3,7 @@ package com.example.hakupivkirja.model.repository
 import com.example.hakupivkirja.model.PistoStateEntity
 import com.example.hakupivkirja.model.Terrain
 import com.example.hakupivkirja.model.TrainingSession
+import com.example.hakupivkirja.model.WeatherEntity
 
 interface HakupivkirjaRepository {
 
@@ -17,6 +18,7 @@ interface HakupivkirjaRepository {
   suspend fun saveTrainingSessionWithTerrain(
     trainingSession: TrainingSession,
     pistoStates: List<PistoStateEntity>,
-    terrain: Terrain?
-  ): Pair<TrainingSession, Terrain?>
+    terrain: Terrain?,
+    weather: WeatherEntity?
+  ):  Triple<TrainingSession, Terrain?, WeatherEntity?>
 }

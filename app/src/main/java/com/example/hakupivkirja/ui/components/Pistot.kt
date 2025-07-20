@@ -1,5 +1,6 @@
 package com.example.hakupivkirja.ui.components
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +18,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -36,9 +40,17 @@ fun Pisto(
   onIrtorullanSijaintiChange: (String) -> Unit,
   sessionAlarmType: String?
 ) {
+  val focusManager = LocalFocusManager.current
+
   Column(
     verticalArrangement = Arrangement.Bottom,
-    modifier = Modifier.padding(top = 4.dp)
+    modifier = Modifier
+      .padding(top = 4.dp)
+      .pointerInput(Unit) {
+        detectTapGestures(onTap = {
+          focusManager.clearFocus()
+        })
+      }
   ) {
 
     Row(
@@ -77,6 +89,9 @@ fun Pisto(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Done
           ),
+          keyboardActions = KeyboardActions(
+            onDone = { focusManager.clearFocus() }
+          ),
           label = { Text("Haukut", fontSize = 11.sp) },
           colors = TextFieldDefaults.colors(
             unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -98,6 +113,9 @@ fun Pisto(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Done
             ),
+          keyboardActions = KeyboardActions(
+            onDone = { focusManager.clearFocus() }
+          ),
             label = { Text("Irtorullan sijainti", fontSize = 11.sp) },
             colors = TextFieldDefaults.colors(
               unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,

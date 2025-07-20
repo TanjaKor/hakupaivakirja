@@ -20,10 +20,9 @@ import com.example.hakupivkirja.ui.components.Valintarivi
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
 // NEXTSTEP:
-
-// siivottu api yhteyttä, dependency injection puuttuu, mutta yhteys pelaa
-//iconin haku?
-// seuraavaksi yhteys tietokantaan
+//tehdään depency injection myöhemmin
+//kirjausdialogiin radiobutton horisontaalisesti kuitenkin?
+//vihdoin testiin
 // parempi jako komponentteihin? Voi tehdä myöhemminkin, ei vaikuta käyttökokemukseen
 
 @OptIn(ExperimentalMaterial3Api::class)

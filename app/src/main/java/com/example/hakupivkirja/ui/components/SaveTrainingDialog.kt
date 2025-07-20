@@ -1,19 +1,24 @@
 package com.example.hakupivkirja.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
@@ -41,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import coil.compose.rememberAsyncImagePainter
 import com.example.hakupivkirja.model.TrainingSessionUiState
 import com.example.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
@@ -75,21 +82,22 @@ fun SaveTrainingSession(
     Card(
       modifier = Modifier
         .fillMaxWidth()
+        .fillMaxHeight(0.9f)
         .padding(0.dp),
       shape = RoundedCornerShape(16.dp)
     ) {
       Column(modifier = Modifier
         .padding(16.dp)
-        .fillMaxSize()
-        .wrapContentSize(Alignment.Center),
+        .fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
-        Text(
-          text = "Haluatko tallentaa suunnitelman vai tehdyn treenin?",
-          textAlign = TextAlign.Center,
-        )
+
         if (!showTrainingDetails) {
+          Text(
+            text = "Haluatko tallentaa suunnitelman vai tehdyn treenin?",
+            textAlign = TextAlign.Center,
+          )
           TextButton(onClick = {
             trainingViewModel.saveTrainingPlan()
           }) {
@@ -102,7 +110,28 @@ fun SaveTrainingSession(
           }
         }
         if (showTrainingDetails) {
-          TrainingDetails(uiState = uiState, trainingSessionViewModel = trainingViewModel, onSaveCompleted = {showTrainingDetails = false})
+          // Training details screen - needs scrolling
+          Column(
+            modifier = Modifier.fillMaxSize()
+          ) {
+            // Fixed header
+            Text(
+              text = "Treenin tiedot",
+              modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+              textAlign = TextAlign.Center
+            )
+
+            // Scrollable content
+            TrainingDetails(
+              uiState = uiState,
+              trainingSessionViewModel = trainingViewModel,
+              onSaveCompleted = { showTrainingDetails = false },
+              modifier = Modifier.weight(1f) // Takes remaining space
+            )
+          }
+
         }
         SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.CenterHorizontally))
       }
@@ -115,7 +144,8 @@ fun SaveTrainingSession(
 fun TrainingDetails(
   uiState: TrainingSessionUiState,
   trainingSessionViewModel: TrainingSessionViewModel,
-  onSaveCompleted: () -> Unit
+  onSaveCompleted: () -> Unit,
+  modifier: Modifier = Modifier
 ) {
   //state for location
   var trainingLocation by remember { mutableStateOf("")}
@@ -137,14 +167,24 @@ fun TrainingDetails(
     }
   }
 
-  Column(horizontalAlignment = Alignment.CenterHorizontally) {
+  Column(
+    horizontalAlignment = Alignment.CenterHorizontally,
+    modifier= modifier
+      .fillMaxSize()
+      .verticalScroll(rememberScrollState())
+      .pointerInput(Unit) {
+        detectTapGestures(onTap = {
+          focusManager.clearFocus()
+        })
+      }
+  ) {
     OutlinedTextField(
       value = trainingLocation,
       onValueChange = { trainingLocation = it },
       label = { Text("Treenipaikka")},
       modifier = Modifier
         .fillMaxWidth()
-        .padding(4.dp)
+        .padding(bottom = 4.dp)
         .onFocusChanged { focusState ->
           // Fetch weather when field loses focus and has text
           if (!focusState.isFocused && trainingLocation.isNotBlank()) {
@@ -165,20 +205,32 @@ fun TrainingDetails(
       )
 
     )
-    Text(text = "Sää: ")
-    when {
 
+    Text(
+      text = "Sää: ",
+      modifier = Modifier.padding(0.dp)
+    )
+    when {
       trainingSessionViewModel.weatherData != null -> {
         val weather = trainingSessionViewModel.weatherData!!
-        Text(text = "${weather.main.temp}°C, ${weather.weather[0].description}")
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(0.dp)) {
+          Text(text = "${weather.main.temp}°C", modifier = Modifier.padding(0.dp))
+          Image(
+            painter = rememberAsyncImagePainter(model = "https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png"),
+            contentDescription = "${weather.weather[0].description}",
+            modifier = Modifier
+              .size(40.dp)
+              .padding(0.dp)
+          )
+        }
       }
 
       else -> {
-        Text(text = "Syötä sijainti saadaksesi säätiedot")
+        Text(text = "Syötä sijainti saadaksesi säätiedot", modifier = Modifier.padding(1.dp))
       }
+    }
 
-    }
-    }
+
     OutlinedTextField(
       value = notes,
       onValueChange = { newNotes ->
@@ -187,6 +239,9 @@ fun TrainingDetails(
       keyboardOptions = KeyboardOptions(
         keyboardType = KeyboardType.Text,
         imeAction = ImeAction.Done
+      ),
+      keyboardActions = KeyboardActions(
+        onDone = { focusManager.clearFocus() }
       ),
       label = { Text("Vapaa sana treenistä") },
       modifier = Modifier
@@ -239,7 +294,8 @@ fun TrainingDetails(
         notes = notes,
         forestThickness = selectedCoverage,
         moistureLevel = selectedMoisture,
-        altitudeChanges = selectedAltitudeChanges
+        altitudeChanges = selectedAltitudeChanges,
+        weatherData = trainingSessionViewModel.weatherData
       )
       onSaveCompleted()
     })
@@ -247,8 +303,7 @@ fun TrainingDetails(
       Text(text = "Valmis")
     }
   }
-
-
+}
 
 @Composable
 fun RatingCard(

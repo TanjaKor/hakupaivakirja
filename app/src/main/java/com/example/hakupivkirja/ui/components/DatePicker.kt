@@ -29,8 +29,11 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun DatePickerFieldToModal(modifier: Modifier = Modifier) {
-    var selectedDate by remember { mutableStateOf<Long?>(null) }
+fun DatePickerFieldToModal(
+    selectedDate: Long,
+    onDateSelected: (Long) -> Unit,
+    modifier: Modifier = Modifier
+) {
     var showModal by remember { mutableStateOf(false) }
 
     OutlinedTextField(
@@ -59,7 +62,11 @@ fun DatePickerFieldToModal(modifier: Modifier = Modifier) {
 
     if (showModal) {
         DatePickerModal(
-            onDateSelected = { selectedDate = it },
+            onDateSelected = { date ->
+                if (date != null) {
+                    onDateSelected(date)
+                }
+            },
             onDismiss = { showModal = false }
         )
     }

@@ -13,6 +13,7 @@ import com.example.hakupivkirja.model.PistoUiState
 import com.example.hakupivkirja.model.Terrain
 import com.example.hakupivkirja.model.TrainingSession
 import com.example.hakupivkirja.model.TrainingSessionUiState
+import com.example.hakupivkirja.model.WeatherEntity
 import com.example.hakupivkirja.model.repository.HakupivkirjaRepository
 import com.example.hakupivkirja.model.repository.NetworkWeatherRepository
 import com.example.hakupivkirja.network.WeatherDetails
@@ -59,7 +60,8 @@ class TrainingSessionViewModel(
   private fun saveTrainingSessionWithTerrainInternal(
     trainingSession: TrainingSession,
     pistoStates: List<PistoStateEntity>,
-    terrain: Terrain? = null
+    terrain: Terrain? = null,
+    weather: WeatherEntity? = null
   ) {
     viewModelScope.launch {
       setSaving(true)
@@ -70,7 +72,8 @@ class TrainingSessionViewModel(
         val (savedSessionFromDb, savedTerrainFromDb) = repository.saveTrainingSessionWithTerrain(
         trainingSession,
         pistoStates,
-        terrain
+        terrain,
+          weather
         )
 
         Log.d(
@@ -137,7 +140,8 @@ class TrainingSessionViewModel(
     notes: String,
     forestThickness: Int,
     moistureLevel: Int,
-    altitudeChanges: Int
+    altitudeChanges: Int,
+    weatherData: WeatherDetails?
   ) {
     val currentSession = _uiState.value.currentTrainingSession
     if (currentSession != null) {
@@ -148,7 +152,6 @@ class TrainingSessionViewModel(
       )
 
       // Create the Terrain object.
-      // The trainingSessionId will be set by the repository after the session is saved.
       val terrainDetails = Terrain(
         trainingSessionId = null, // Will be updated by repository
         forestThickness = forestThickness,
@@ -156,8 +159,16 @@ class TrainingSessionViewModel(
         moistureLevel = moistureLevel
       )
 
+      val weatherDetails = WeatherEntity(
+        trainingSessionId = null, // Will be updated by repository
+        weatherDescription = weatherData?.weather?.get(0)?.description,
+        temperatureCelsius = weatherData?.main?.temp,
+        windSpeed = weatherData?.wind?.speed,
+        windDirection = weatherData?.wind?.deg?.toString()
+      )
+
       val pistoEntities = convertToEntityStates()
-      saveTrainingSessionWithTerrainInternal(completedSession, pistoEntities, terrainDetails)
+      saveTrainingSessionWithTerrainInternal(completedSession, pistoEntities, terrainDetails, weatherDetails)
 
     } else {
       setError("Cannot save training: No current session.")

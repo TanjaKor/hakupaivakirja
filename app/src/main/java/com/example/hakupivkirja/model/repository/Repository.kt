@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.hakupivkirja.model.PistoStateEntity
 import com.example.hakupivkirja.model.Terrain
 import com.example.hakupivkirja.model.TrainingSession
+import com.example.hakupivkirja.model.WeatherEntity
 import com.example.hakupivkirja.model.dao.TerrainDao
 import com.example.hakupivkirja.model.dao.TrainingSessionDao
 import com.example.hakupivkirja.model.dao.WeatherDao
@@ -26,8 +27,9 @@ class HakupivkirjaRepositoryImpl(
   override suspend fun saveTrainingSessionWithTerrain(
     trainingSession: TrainingSession,
     pistoStates: List<PistoStateEntity>,
-    terrain: Terrain?
-  ): Pair<TrainingSession, Terrain?> {
+    terrain: Terrain?,
+    weather: WeatherEntity?
+  ): Triple<TrainingSession, Terrain?, WeatherEntity?> {
     return withContext(Dispatchers.IO) {
       // Save session and get the ID
       val savedSession = trainingSessionDao.saveTrainingSession(trainingSession, pistoStates)
@@ -35,12 +37,17 @@ class HakupivkirjaRepositoryImpl(
 
       if (sessionId == 0L) {
         Log.e("Repository", "Failed to save training session")
-        return@withContext Pair(savedSession, null)
+        return@withContext Triple(savedSession, null, null)
       }
 
       // Clear any existing terrain for this session first
       terrainDao.getTerrainBySessionId(sessionId)?.let { existingTerrain ->
         terrainDao.deleteTerrain(existingTerrain)
+      }
+
+      // Clear any existing weather for this session first
+      weatherDao.getWeatherBySessionId(sessionId)?.let { existingWeather ->
+        weatherDao.deleteWeather(existingWeather)
       }
 
       // Save new terrain if provided
@@ -53,7 +60,18 @@ class HakupivkirjaRepositoryImpl(
         terrainToSave.copy(id = newTerrainId)
       }
 
-      Pair(savedSession, savedTerrain)
+      // Save new weather if provided
+      val savedWeather = weather?.let { newWeather ->
+        val weatherToSave = newWeather.copy(
+          id = 0L, // Force new weather (since we deleted the old one)
+          trainingSessionId = sessionId
+        )
+        val newWeatherId = weatherDao.upsertWeather(weatherToSave)
+        weatherToSave.copy(id = newWeatherId)
+      }
+
+
+      Triple(savedSession, savedTerrain, savedWeather)
     }
   }
 }

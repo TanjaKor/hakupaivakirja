@@ -12,6 +12,6 @@ interface WeatherRepository {
 class NetworkWeatherRepository : WeatherRepository {
   private val apiKey = BuildConfig.WEATHER_API_KEY
   override suspend fun getWeather(trainingLocation: String): WeatherDetails {
-    return WeatherApi.retrofitService.getWeather(trainingLocation, apiKey ,  "metric")
+    return WeatherApi.retrofitService.getWeather(trainingLocation, apiKey,  "metric")
   }
 }
