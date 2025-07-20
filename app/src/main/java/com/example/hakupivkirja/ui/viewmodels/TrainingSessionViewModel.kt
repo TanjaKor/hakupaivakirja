@@ -1,8 +1,10 @@
 package com.example.hakupivkirja.ui.viewmodels
 
+//import com.example.hakupivkirja.model.repository.WeatherRepository
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hakupivkirja.model.PistoMode
@@ -11,26 +13,42 @@ import com.example.hakupivkirja.model.PistoUiState
 import com.example.hakupivkirja.model.Terrain
 import com.example.hakupivkirja.model.TrainingSession
 import com.example.hakupivkirja.model.TrainingSessionUiState
-import com.example.hakupivkirja.model.WeatherEntity
 import com.example.hakupivkirja.model.repository.HakupivkirjaRepository
-import com.example.hakupivkirja.model.repository.WeatherRepository
-import kotlinx.coroutines.delay
+import com.example.hakupivkirja.model.repository.NetworkWeatherRepository
+import com.example.hakupivkirja.network.WeatherDetails
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+//sealed interface WeatherUiState {
+//  data class Success(val weather: String) : WeatherUiState
+//  object Error : WeatherUiState
+//  object Loading : WeatherUiState
+//}
+
 class TrainingSessionViewModel(
   private val repository: HakupivkirjaRepository,
-  private val weatherRepository: WeatherRepository
+//  private val weatherRepository: WeatherRepository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(TrainingSessionUiState())
   val uiState: StateFlow<TrainingSessionUiState> = _uiState.asStateFlow()
 
-  private val _weatherState = MutableLiveData<WeatherEntity?>()
-  val weatherState: LiveData<WeatherEntity?> = _weatherState
+  var weatherData by mutableStateOf<WeatherDetails?>(null)
+    private set
+
+  var isLoadingWeather by mutableStateOf(false)
+    private set
+
+  var errorMessage by mutableStateOf("")
+    private set
+//  var weatherUiState: WeatherUiState by mutableStateOf(WeatherUiState.Loading)
+//    private set
+
+//  private val _weatherState = MutableLiveData<WeatherEntity?>()
+//  val weatherState: LiveData<WeatherEntity?> = _weatherState
 
   init {
     initializeEmptyTrainingSession()
@@ -146,34 +164,23 @@ class TrainingSessionViewModel(
     }
   }
 
-  fun fetchWeatherData(location: String, onResult: (String) -> Unit) {
+  fun getWeather(trainingLocation: String
+  ) {
+    // launching coroutine
     viewModelScope.launch {
       try {
-        // Replace with your actual weather API call
-        val weatherInfo = getWeatherForLocation(location)
-        onResult(weatherInfo)
+        isLoadingWeather = true
+        errorMessage = ""
+        val weatherRepository = NetworkWeatherRepository()
+        weatherData = weatherRepository.getWeather(trainingLocation)
+        isLoadingWeather = false
       } catch (e: Exception) {
-        onResult("Säätietoja ei saatavilla")
+        Log.e("WeatherViewModel", "Error fetching weather: ${e.message}")
+        errorMessage = "Error: ${e.message}"
+        isLoadingWeather = false
+        weatherData = null
       }
     }
-  }
-
-  private suspend fun getWeatherForLocation(location: String): String {
-    // This is where you'd call your weather API
-    // Example with OpenWeatherMap API:
-    /*
-    val apiKey = "YOUR_API_KEY"
-    val url = "https://api.openweathermap.org/data/2.5/weather?q=$location&appid=$apiKey&units=metric"
-
-    return withContext(Dispatchers.IO) {
-        // Make HTTP request and parse response
-        // Return formatted weather string like "15°C, Pilvipouta"
-    }
-    */
-
-    // For now, return a placeholder
-    delay(1000) // Simulate network delay
-    return "15°C, Pilvipouta" // Placeholder weather data
   }
 
   // Initialize a new empty training session

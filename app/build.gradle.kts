@@ -1,8 +1,12 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.ksp)
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
+
 }
 
 android {
@@ -20,6 +24,21 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        // Load properties from local.properties
+        val localProps = Properties()
+        val localPropertiesFile = rootProject.file("local.properties") // Reference the root project's file
+        if (localPropertiesFile.exists()) {
+            localProps.load(localPropertiesFile.inputStream())
+        }
+
+        // Make the API key available in BuildConfig
+        // Provide a default or placeholder if the key is not found in local.properties
+        // (e.g., for CI servers or colleagues who haven't set up the file yet)
+    buildConfigField(
+        "String",
+        "WEATHER_API_KEY",
+        "\"${localProps.getProperty("WEATHER_API_KEY", "YOUR_DEFAULT_KEY")}\"")
+
     }
 
     buildTypes {
@@ -40,8 +59,9 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
-    packaging {
+    packagingOptions {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -49,8 +69,11 @@ android {
 }
 
 dependencies {
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.retrofit)
-    implementation(libs.converter.gson)
+    implementation(libs.retrofit2.converter.scalars)
     implementation(libs.logging.interceptor)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

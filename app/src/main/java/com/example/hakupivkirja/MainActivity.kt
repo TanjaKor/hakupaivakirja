@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.hakupivkirja.model.repository.HakupivkirjaRepository
 import com.example.hakupivkirja.model.repository.RepositoryProvider
-import com.example.hakupivkirja.model.repository.WeatherRepository
 import com.example.hakupivkirja.ui.components.AppTopBar
 import com.example.hakupivkirja.ui.screens.HomeScreen
 import com.example.hakupivkirja.ui.theme.HakupäiväkirjaTheme
@@ -33,18 +32,18 @@ import com.example.hakupivkirja.utils.AppViewModelProvider
 
 class MainActivity : ComponentActivity() {
     private lateinit var repository: HakupivkirjaRepository
-    private lateinit var weatherRepository: WeatherRepository
+
 
     // Get the ViewModel instance using the factory from AppViewModelProvider
     private val trainingSessionViewModel: TrainingSessionViewModel by viewModels {
-        AppViewModelProvider.factory(repository,weatherRepository) // Use your provider here
+        AppViewModelProvider.factory(repository) // Use your provider here
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         repository = RepositoryProvider.provideRepository(applicationContext)
-        weatherRepository = RepositoryProvider.provideWeatherRepository(applicationContext)
+
         // --- End of repository initialization ---
         enableEdgeToEdge()
         setContent {

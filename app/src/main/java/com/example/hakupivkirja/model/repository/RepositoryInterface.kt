@@ -9,7 +9,6 @@ interface HakupivkirjaRepository {
 //    // PistoState operations
 //  suspend fun insertAllPistoStates(pistoStates: List<PistoStateEntity>)
 
-  // Combined operations
   suspend fun saveTrainingSession(
     trainingSession: TrainingSession,
     pistoStates: List<PistoStateEntity>

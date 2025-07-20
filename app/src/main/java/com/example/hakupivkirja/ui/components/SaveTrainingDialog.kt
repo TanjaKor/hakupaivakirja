@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -17,7 +16,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -122,8 +120,6 @@ fun TrainingDetails(
   //state for location
   var trainingLocation by remember { mutableStateOf("")}
   val focusManager = LocalFocusManager.current
-  var weatherData by remember { mutableStateOf("") }
-  var isLoadingWeather by remember { mutableStateOf(false) }
   // States for rating and notes
   var selectedRating by remember { mutableStateOf(uiState.currentTrainingSession?.overallRating ?: 1) } // Default to 1 or value from uiState
   var selectedDifficulty by remember { mutableStateOf(uiState.currentTrainingSession?.difficultyRating ?: 1) } // Default to 1 or value from uiState
@@ -136,12 +132,8 @@ fun TrainingDetails(
   // Function to fetch weather data
   fun fetchWeatherData(location: String) {
     if (location.isNotBlank()) {
-      isLoadingWeather = true
       // Call your weather API here
-      trainingSessionViewModel.fetchWeatherData(location) { weather ->
-        weatherData = weather
-        isLoadingWeather = false
-      }
+      trainingSessionViewModel.getWeather(location)
     }
   }
 
@@ -171,23 +163,21 @@ fun TrainingDetails(
           focusManager.clearFocus() // Hide keyboard
         }
       )
+
     )
     Text(text = "Sää: ")
     when {
-      isLoadingWeather -> {
-        CircularProgressIndicator(
-          modifier = Modifier.size(16.dp),
-          strokeWidth = 2.dp
-        )
-      }
 
-      weatherData.isNotBlank() -> {
-        Text(text = weatherData)
+      trainingSessionViewModel.weatherData != null -> {
+        val weather = trainingSessionViewModel.weatherData!!
+        Text(text = "${weather.main.temp}°C, ${weather.weather[0].description}")
       }
 
       else -> {
         Text(text = "Syötä sijainti saadaksesi säätiedot")
       }
+
+    }
     }
     OutlinedTextField(
       value = notes,
@@ -257,7 +247,7 @@ fun TrainingDetails(
       Text(text = "Valmis")
     }
   }
-  }
+
 
 
 @Composable
