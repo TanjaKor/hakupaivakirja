@@ -1,8 +1,8 @@
 package com.tanjan.hakupivkirja.ui.components
 
-
 import android.widget.Toast.LENGTH_SHORT
 import android.widget.Toast.makeText
+import androidx.compose.foundation.background
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
@@ -21,6 +21,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
@@ -42,7 +45,24 @@ fun AppTopBar(
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val isHomeScreen = currentRoute == "home"
+    // Define which routes show menu icon vs back button
+    val menuRoutes = setOf("home", "overall")
+    val showMenuIcon = currentRoute in menuRoutes
+
+    // Get title based on current route
+    fun getTitle(): String {
+        return when (currentRoute) {
+            "home" -> "Hakupäiväkirja"
+            "overall" -> {
+                uiState.currentTrainingSession?.let { "${it.dogName} - Yhteenveto" }
+                    ?: "Yhteenveto"
+            }
+            // Add more routes here as needed:
+            // "settings" -> "Asetukset"
+            // "profile" -> "Profiili"
+            else -> "Hakupäiväkirja" // Default title
+        }
+    }
 
     if (showDialog) {
         IlmaisunValinta(
@@ -62,28 +82,38 @@ fun AppTopBar(
 
     CenterAlignedTopAppBar(
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            containerColor = Color.Transparent,
             titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ),
+        // Käytetään Modifier.background-attribuuttia gradientin piirtämiseen.
+        modifier = Modifier.background(
+            Brush.verticalGradient(
+                colors = listOf(
+                    // Aloitusväri (hieman vaaleampi/kirkkaampi)
+                    MaterialTheme.colorScheme.primaryContainer,
+                    // Lopetusväri (alkuperäinen tai hieman tummempi)
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.80f)
+                ),
+            )
+        ),
         title = {
             Text(
-                "Hakupäiväkirja",
+                getTitle(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         },
         navigationIcon = {
-            if (currentRoute == "home" || currentRoute == "history") {
-                IconButton(onClick = onMenuIconClick) { // MUUTOS
+            if (showMenuIcon) {
+                IconButton(onClick = onMenuIconClick) {
                     Icon(
                         imageVector = Icons.Filled.Menu,
                         contentDescription = "Avaa valikko"
                     )
                 }
             } else {
-                // Muualla näytä takaisin-nuoli
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -93,12 +123,16 @@ fun AppTopBar(
             }
         },
         actions = {
-            TextButton(onClick = { showDialog = true }) {
-                uiState.currentTrainingSession?.let {
-                    Text(
-                        text = it.dogName,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        fontSize = 18.sp)
+            // Only show ilmaisun valinta in homescreen
+            if (currentRoute == "home") {
+                TextButton(onClick = { showDialog = true }) {
+                    uiState.currentTrainingSession?.let {
+                        Text(
+                            text = "Ilmaisu",
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontSize = 18.sp
+                        )
+                    }
                 }
             }
         },

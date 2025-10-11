@@ -202,7 +202,7 @@ class TrainingSessionViewModel(
         currentTrainingSession = TrainingSession(
           dateMillis = System.currentTimeMillis(),
           shortDescription = "",
-          dogName = "Ilmaisu",
+          dogName = "Himpu",
           alarmType = "haukku",
           notes = null,
           overallRating = null,

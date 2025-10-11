@@ -57,6 +57,7 @@ fun Valintarivi(
         ) {
             uiState.currentTrainingSession?.dateMillis?.let {
                 DatePickerFieldToModal(
+                    modifier = Modifier.weight(1.2f),
                     selectedDate = uiState.currentTrainingSession?.dateMillis!!,
                     onDateSelected = { selectedDate ->
                         selectedDate.let { dateMillis ->
@@ -79,10 +80,13 @@ fun Valintarivi(
                     trainingSessionViewModel.updateSelectedPistot(count)
                 }
             )
+
             Column(verticalArrangement = Arrangement.spacedBy(0.dp)){
                 IconButton(
                     onClick = { showSaveTraining = true },
-                    modifier = Modifier.padding(0.dp).offset(y = (10).dp)
+                    modifier = Modifier
+                        .padding(0.dp)
+                        .offset(y = (10).dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Save,

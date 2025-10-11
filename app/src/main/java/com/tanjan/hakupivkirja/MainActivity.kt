@@ -93,7 +93,7 @@ fun AppNavigation(repository: HakupivkirjaRepository) {
   // Määritellään valikon kohteet listana, jotta niitä on helppo laajentaa
   val navigationItems = listOf(
     "home" to "Koti",
-    "history" to "Historia"
+    "overall" to "Yhteenveto"
   )
 
 
@@ -162,7 +162,7 @@ fun AppNavigation(repository: HakupivkirjaRepository) {
             )
           }
           // Reitti uuteen historia-näkymään
-          composable("history") {
+          composable("overall") {
             HistoryScreen()
             // Jos HistoryScreen tarvitsisi oman ViewModelin, luotaisiin se täällä:
             // val historyViewModel: HistoryViewModel = viewModel(...)

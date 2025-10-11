@@ -20,10 +20,7 @@ import com.tanjan.hakupivkirja.ui.components.Valintarivi
 import com.tanjan.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
 // NEXTSTEP:
-//tehdään depency injection myöhemmin
-//kirjausdialogiin radiobutton horisontaalisesti kuitenkin?
-//vihdoin testiin
-// parempi jako komponentteihin? Voi tehdä myöhemminkin, ei vaikuta käyttökokemukseen
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

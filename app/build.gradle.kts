@@ -9,6 +9,13 @@ plugins {
 //    id("com.google.gms.google-services")
 }
 
+// Load properties from local.properties
+val localProps = Properties()
+val localPropertiesFile = rootProject.file("local.properties") // Reference the root project's file
+if (localPropertiesFile.exists()) {
+    localProps.load(localPropertiesFile.inputStream())
+}
+
 android {
     namespace = "com.tanjan.hakupivkirja"
     compileSdk = 35
@@ -24,23 +31,15 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        // Load properties from local.properties
-        val localProps = Properties()
-        val localPropertiesFile = rootProject.file("local.properties") // Reference the root project's file
-        if (localPropertiesFile.exists()) {
-            localProps.load(localPropertiesFile.inputStream())
-        }
 
-        // Make the API key available in BuildConfig
-        // Provide a default or placeholder if the key is not found in local.properties
-        // (e.g., for CI servers or colleagues who haven't set up the file yet)
-    buildConfigField(
-        "String",
-        "WEATHER_API_KEY",
-        "\"${localProps.getProperty("WEATHER_API_KEY", "YOUR_DEFAULT_KEY")}\"")
+        // Haetaan WEATHER_API_KEY, käytetään tyhjää arvoa jos ei löydy.
+        val weatherApiKey = localProps.getProperty("WEATHER_API_KEY", "")
+        buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
 
+        // Haetaan GOOGLE_API, käytetään tyhjää arvoa jos ei löydy.
+        val googleApi = localProps.getProperty("GOOGLE_API", "")
+        buildConfigField("String", "GOOGLE_API", "\"$googleApi\"")
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
