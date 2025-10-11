@@ -5,16 +5,16 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.ksp)
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
-
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+//    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.hakupivkirja"
+    namespace = "com.tanjan.hakupivkirja"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.hakupivkirja"
+        applicationId = "com.tanjan.hakupivkirja"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
@@ -100,4 +100,7 @@ dependencies {
     // Add this line to include the foundation layout dependency
     implementation(libs.androidx.foundation.layout)
     implementation(libs.androidx.room.runtime)
+//    implementation(libs.firebase.analytics)
+//    implementation(platform(libs.firebase.bom))
+    implementation(libs.androidx.navigation.compose)
 }
