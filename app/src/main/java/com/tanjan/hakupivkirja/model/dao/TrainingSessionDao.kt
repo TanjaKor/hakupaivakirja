@@ -6,9 +6,47 @@ import androidx.room.Transaction
 import androidx.room.Upsert
 import com.tanjan.hakupivkirja.model.PistoStateEntity
 import com.tanjan.hakupivkirja.model.TrainingSession
+import com.tanjan.hakupivkirja.model.TrainingSessionWithPistoStates
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TrainingSessionDao {
+  // ========== FETCH OPERATIONS ==========
+
+  // Get all training sessions ordered by date (newest first)
+  @Query("SELECT * FROM training_sessions ORDER BY dateMillis DESC")
+  fun getAllTrainingSessions(): Flow<List<TrainingSession>>
+
+  // Get a single training session by ID
+  @Query("SELECT * FROM training_sessions WHERE id = :sessionId LIMIT 1")
+  suspend fun getTrainingSessionById(sessionId: Long): TrainingSession?
+
+  // Get training session with all related pisto states
+  @Transaction
+  @Query("SELECT * FROM training_sessions WHERE id = :sessionId LIMIT 1")
+  suspend fun getTrainingSessionWithPistoStates(sessionId: Long): TrainingSessionWithPistoStates?
+
+  // Get all training sessions with their pisto states
+  @Transaction
+  @Query("SELECT * FROM training_sessions ORDER BY dateMillis DESC")
+  fun getAllTrainingSessionsWithPistoStates(): Flow<List<TrainingSessionWithPistoStates>>
+
+  // Get training sessions from a specific year
+  @Query("SELECT * FROM training_sessions WHERE dateMillis >= :startMillis AND dateMillis <= :endMillis ORDER BY dateMillis DESC")
+  fun getTrainingSessionsByYear(startMillis: Long, endMillis: Long): Flow<List<TrainingSession>>
+
+  // Get count of training sessions in a year
+  @Query("SELECT COUNT(*) FROM training_sessions WHERE dateMillis >= :startMillis AND dateMillis <= :endMillis")
+  suspend fun getTrainingCountByYear(startMillis: Long, endMillis: Long): Int
+
+  // Get pisto states for a specific session
+  @Query("SELECT * FROM pisto_states WHERE trainingSessionId = :sessionId ORDER BY pistoIndex ASC")
+  suspend fun getPistoStatesForSession(sessionId: Long): List<PistoStateEntity>
+
+  // Get all training session IDs from a specific year
+  @Query("SELECT id FROM training_sessions WHERE dateMillis >= :startMillis AND dateMillis <= :endMillis")
+  suspend fun getSessionIdsByYear(startMillis: Long, endMillis: Long): List<Long>
+
 
   // Main function - handles both save and update
   @Transaction

@@ -20,4 +20,8 @@ interface TerrainDao {
 
   @Delete
   suspend fun deleteTerrain(terrain: Terrain)
+
+  // Get all terrain data for sessions in a specific year
+  @Query("SELECT * FROM terrain_details WHERE trainingSessionId IN (:sessionIds)")
+  suspend fun getTerrainForSessions(sessionIds: List<Long>): List<Terrain>
 }

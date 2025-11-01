@@ -20,4 +20,8 @@ interface WeatherDao {
 
   @Delete
   suspend fun deleteWeather(weather: WeatherEntity)
+
+  // Get all weather data for sessions in a specific year
+  @Query("SELECT * FROM weather_conditions WHERE trainingSessionId IN (:sessionIds)")
+  suspend fun getWeatherForSessions(sessionIds: List<Long>): List<WeatherEntity>
 }

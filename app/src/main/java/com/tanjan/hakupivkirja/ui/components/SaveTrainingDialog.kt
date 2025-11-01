@@ -199,7 +199,6 @@ fun TrainingDetails(
           focusManager.clearFocus() // Hide keyboard
         }
       )
-
     )
 
     Text(
@@ -220,12 +219,10 @@ fun TrainingDetails(
           )
         }
       }
-
       else -> {
         Text(text = "Syötä sijainti saadaksesi säätiedot", modifier = Modifier.padding(1.dp))
       }
     }
-
 
     OutlinedTextField(
       value = notes,

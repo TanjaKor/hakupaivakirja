@@ -24,9 +24,11 @@ import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,15 +40,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tanjan.hakupivkirja.ui.screens.SectionData.sectionsData
 import com.tanjan.hakupivkirja.ui.theme.primaryDark
 import com.tanjan.hakupivkirja.ui.theme.primaryLight
 import com.tanjan.hakupivkirja.ui.theme.secondaryLight
+import com.tanjan.hakupivkirja.ui.viewmodels.HistoryViewModel
 
-// --- Data-luokkien päivitys ---
+
+// Keep your existing data classes
 data class Section(
   val id: String,
   val title: String,
@@ -60,13 +62,11 @@ data class Section(
   val trainingContent: TrainingData? = null
 )
 
-// Uusi dataluokka treenimäärät-osioon
 data class TrainingData(
   val summary: List<Pair<String, String>>,
   val difficulty: List<Pair<String, String>>
 )
 
-// Uusi dataluokka haastavuus-osioon
 data class ChallengeData(
   val average: Pair<String, String>,
   val overall: List<Pair<String, String>>,
@@ -75,68 +75,16 @@ data class ChallengeData(
   val dryness: List<Pair<String, String>>
 )
 
-// Uusi dataluokka lämpötila-osioon
 data class TemperatureData(
   val average: Pair<String, String>,
   val temperatures: List<Pair<String, String>>,
   val conditions: List<Pair<String, String>>
 )
 
-object SectionData {
-  val sectionsData = listOf(
-    Section(
-      id = "treenimilarat",
-      title = "Yleistä",
-      summary = "13 kpl • Avg 4/kk • vaikeutaso avg 2.9",
-      trainingContent = TrainingData(
-        summary = listOf("Yhteensä" to "13 kpl", "Keskiarvo/kk" to "4 kpl", "Keskiarvo/vk" to "1 kpl"),
-        difficulty = listOf(
-          "1" to "2", "2" to "3",
-          "3" to "3", "4" to "4",
-          "5" to "1"
-        )
-      ),
-      colors = primaryLight to primaryDark,
-      bgColor = secondaryLight,
-      icon = Icons.Default.TableChart
-    ),
-    Section(
-      id = "haasteet",
-      title = "Maasto",
-      summary = "Keskiarvo: 4",
-      challengeContent = ChallengeData(
-        average = "Keskiarvo" to "4",
-        overall = listOf("1" to "4", "2" to "2","3" to "2","4" to "2","5" to "2"),
-        coverage = listOf("1" to "5", "2" to "1", "3" to "3"),
-        elevation = listOf("1" to "1", "2" to "6", "3" to "2"),
-        dryness = listOf("1" to "2", "2" to "3", "3" to "10")
-      ),
-      colors = primaryLight to primaryDark,
-      bgColor = secondaryLight,
-      icon = Icons.Default.Terrain
-    ),
-    Section(
-      id = "lampotila",
-      title = "Sää",
-      summary = "Keskiarvo: 17°C",
-      temperatureContent = TemperatureData(
-        average = "Keskilämpötila" to "17°C",
-        temperatures = listOf("0-10°C" to "2", "10-20°C" to "3", "20-30°C" to "4", ),
-        conditions = listOf(
-          "Aurinkoinen" to "3",
-          "Pilvinen" to "3",
-          "Sadetta" to "3"
-        )
-      ),
-      colors = primaryLight to primaryDark,
-      bgColor = secondaryLight,
-      icon = Icons.Default.Thermostat
-    )
-  )
-}
-
 @Composable
-fun HistoryScreen() {
+fun HistoryScreen( historyViewModel: HistoryViewModel) {
+
+  val uiState by historyViewModel.uiState.collectAsState()
   var expandedStates by remember { mutableStateOf(mapOf<String, Boolean>()) }
 
   Column(
@@ -146,22 +94,113 @@ fun HistoryScreen() {
       .verticalScroll(rememberScrollState()),
     verticalArrangement = Arrangement.spacedBy(16.dp)
   ) {
-    Text("Kausi 2025", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = primaryLight)
-    sectionsData.forEach { section ->
-      val isExpanded = expandedStates[section.title] ?: false
-      SectionCard(
-        section = section,
-        isExpanded = isExpanded,
-        onToggle = {
-          expandedStates = expandedStates.toMutableMap().apply {
-            this[section.title] = !isExpanded
+    Text(
+      "Kausi ${uiState.year}",
+      fontSize = 24.sp,
+      fontWeight = FontWeight.Bold,
+      color = primaryLight
+    )
+
+    // Show loading indicator
+    if (uiState.isLoading) {
+      Box(
+        modifier = Modifier.fillMaxWidth().padding(32.dp),
+        contentAlignment = Alignment.Center
+      ) {
+        CircularProgressIndicator()
+      }
+    }
+
+    // Show error if any
+    uiState.error?.let { error ->
+      Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+          containerColor = Color.Red.copy(alpha = 0.1f)
+        )
+      ) {
+        Text(
+          text = error,
+          modifier = Modifier.padding(16.dp),
+          color = Color.Red
+        )
+      }
+    }
+
+    // Show data when available
+    uiState.yearlyData?.let { yearlyData ->
+      // Build sections dynamically from real data
+      val sectionsData = buildSectionsFromData(historyViewModel)
+
+      sectionsData.forEach { section ->
+        val isExpanded = expandedStates[section.title] ?: false
+        SectionCard(
+          section = section,
+          isExpanded = isExpanded,
+          onToggle = {
+            expandedStates = expandedStates.toMutableMap().apply {
+              this[section.title] = !isExpanded
+            }
           }
-        }
-      )
+        )
+      }
     }
   }
 }
 
+// Function to build sections from real data
+@Composable
+fun buildSectionsFromData(viewModel: HistoryViewModel): List<Section> {
+  val totalTrainings = viewModel.getTotalTrainings()
+  val avgDifficulty = viewModel.getAverageDifficulty()
+  val terrainAvg = viewModel.getTerrainOverallAverage()
+  val avgTemp = viewModel.getAverageTemperature()
+
+  return listOf(
+    Section(
+      id = "treenimilarat",
+      title = "Yleistä",
+      summary = "$totalTrainings kpl • vaikeutaso avg $avgDifficulty",
+      trainingContent = TrainingData(
+        summary = viewModel.getTrainingSummary(),
+        difficulty = viewModel.getDifficultyDistribution()
+      ),
+      colors = primaryLight to primaryDark,
+      bgColor = secondaryLight,
+      icon = Icons.Default.TableChart
+    ),
+    Section(
+      id = "haasteet",
+      title = "Maasto",
+      summary = "Keskiarvo: $terrainAvg",
+      challengeContent = ChallengeData(
+        average = "Keskiarvo" to terrainAvg,
+        overall = viewModel.getDifficultyDistribution(), // Using general difficulty as "overall"
+        coverage = viewModel.getForestThicknessDistribution(), // forestThickness = coverage
+        elevation = viewModel.getAltitudeChangesDistribution(), // altitudeChanges = elevation
+        dryness = viewModel.getMoistureLevelDistribution() // moistureLevel = dryness (inverted logic)
+      ),
+      colors = primaryLight to primaryDark,
+      bgColor = secondaryLight,
+      icon = Icons.Default.Terrain
+    ),
+    Section(
+      id = "lampotila",
+      title = "Sää",
+      summary = "Keskiarvo: ${avgTemp}°C",
+      temperatureContent = TemperatureData(
+        average = "Keskilämpötila" to "${avgTemp}°C",
+        temperatures = viewModel.getTemperatureRanges(),
+        conditions = viewModel.getWeatherConditions()
+      ),
+      colors = primaryLight to primaryDark,
+      bgColor = secondaryLight,
+      icon = Icons.Default.Thermostat
+    )
+  )
+}
+
+// Keep all your existing composable functions unchanged
 @Composable
 fun SectionCard(section: Section, isExpanded: Boolean, onToggle: () -> Unit) {
   Card(
@@ -216,7 +255,6 @@ fun SectionCard(section: Section, isExpanded: Boolean, onToggle: () -> Unit) {
             .padding(16.dp),
           verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-          // --- Sisällön dynaaminen valinta ---
           when {
             section.trainingContent != null -> TrainingContent(data = section.trainingContent)
             section.challengeContent != null -> ChallengeContent(data = section.challengeContent)
@@ -231,20 +269,16 @@ fun SectionCard(section: Section, isExpanded: Boolean, onToggle: () -> Unit) {
 
 @Composable
 private fun TrainingContent(data: TrainingData) {
-  // Funktio, joka laskee painotetun keskiarvon listasta
   fun calculateAverage(values: List<Pair<String, String>>): String {
-    val totalItems = values.sumOf { it.second.replace(" kpl", "").toIntOrNull() ?: 0 }
+    val totalItems = values.sumOf { it.second.toIntOrNull() ?: 0 }
     if (totalItems == 0) return "0.0"
-    val weightedSum = values.sumOf { (it.first.toIntOrNull() ?: 0) * (it.second.replace(" kpl", "").toIntOrNull() ?: 0) }
+    val weightedSum = values.sumOf { (it.first.toIntOrNull() ?: 0) * (it.second.toIntOrNull() ?: 0) }
     val average = weightedSum.toFloat() / totalItems.toFloat()
     return String.format("%.1f", average)
   }
 
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    // Yhteenveto ylhäällä
     DataContent(data = data.summary)
-
-    // Yleinen vaikeustaso alakategoriana
     PairValueRow(
       title = "Yleinen vaikeustaso",
       average = calculateAverage(data.difficulty),
@@ -255,19 +289,15 @@ private fun TrainingContent(data: TrainingData) {
 
 @Composable
 private fun ChallengeContent(data: ChallengeData) {
-  // Funktio, joka laskee painotetun keskiarvon listasta
   fun calculateAverage(values: List<Pair<String, String>>): String {
     val totalItems = values.sumOf { it.second.toIntOrNull() ?: 0 }
     if (totalItems == 0) return "0.0"
     val weightedSum = values.sumOf { (it.first.toIntOrNull() ?: 0) * (it.second.toIntOrNull() ?: 0) }
     val average = weightedSum.toFloat() / totalItems.toFloat()
-    // Pyöristetään yhteen desimaaliin
     return String.format("%.1f", average)
   }
 
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-
-    // Jokainen alakategoria omassa kortissaan, jossa laskettu keskiarvo on korostettuna
     PairValueRow(
       title = "Maaston yleinen haastavuus",
       average = calculateAverage(data.overall),
@@ -294,21 +324,17 @@ private fun ChallengeContent(data: ChallengeData) {
 @Composable
 private fun TemperatureContent(data: TemperatureData) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    // Ylin rivi yleiselle keskiarvolle
     DataContent(data = listOf(data.average))
-
-    // Alakategoriat omissa korteissaan
     PairValueRow(title = "Lämpötilat", values = data.temperatures)
     PairValueRow(title = "Sääolosuhteet", values = data.conditions)
   }
 }
 
-// --- Uudelleenkäytettävät apufunktiot ---
 @Composable
 private fun PairValueRow(
   title: String,
   values: List<Pair<String, String>>,
-  average: String? = null // Valinnainen keskiarvo-parametri
+  average: String? = null
 ) {
   Card(
     colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -316,24 +342,22 @@ private fun PairValueRow(
     modifier = Modifier.fillMaxWidth()
   ) {
     Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-       Row(
+      Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
         Text(title, fontSize = 18.sp, color = Color(0xFF1E293B), fontWeight = FontWeight.SemiBold)
-
       }
       if (average != null) {
         Text(
           text = "Keskiarvo $average",
           fontSize = 17.sp,
           color = Color(0xFF1E293B),
-          modifier = Modifier.padding(top=8.dp,bottom=8.dp)
+          modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
         )
       }
 
-      // Rivi, joka näyttää varsinaiset arvot
       Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth()
@@ -352,11 +376,7 @@ private fun PairValueRow(
               horizontalAlignment = Alignment.Start,
               verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-              Text(
-                text = key,
-                fontSize = 12.sp,
-                color = Color.Gray
-              )
+              Text(text = key, fontSize = 12.sp, color = Color.Gray)
               Text(
                 text = "$value kpl",
                 fontSize = 15.sp,
@@ -367,14 +387,12 @@ private fun PairValueRow(
           }
         }
       }
-
     }
   }
 }
 
 @Composable
 private fun DataContent(data: List<Pair<String, String>>) {
-  // Jaa data kahden kortin ryhmiin ja luo rivit dynaamisesti
   data.chunked(3).forEach { rowData ->
     Row(
       horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -393,16 +411,9 @@ private fun DataContent(data: List<Pair<String, String>>) {
           }
         }
       }
-      // Jos rivillä on vain yksi alkio, lisää tyhjä tila, jotta layout pysyy ehjänä
       if (rowData.size == 1) {
         Spacer(modifier = Modifier.weight(1f))
       }
     }
   }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HistoryScreenPreview() {
-  HistoryScreen()
 }

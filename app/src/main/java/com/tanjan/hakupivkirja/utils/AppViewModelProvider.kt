@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.tanjan.hakupivkirja.model.repository.HakupivkirjaRepository
+import com.tanjan.hakupivkirja.ui.viewmodels.HistoryViewModel
 import com.tanjan.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 
 // Import other ViewModels and their dependencies if this factory handles more
@@ -17,7 +18,9 @@ object AppViewModelProvider {
     initializer {
       TrainingSessionViewModel(repository = trainingSessionRepository)
     }
-
+    // Lisää alustaja HistoryViewModel-luokalle
+    initializer {
+      HistoryViewModel(repository = trainingSessionRepository)
+    }
   }
-
 }

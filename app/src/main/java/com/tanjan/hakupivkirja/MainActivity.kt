@@ -78,6 +78,10 @@ fun AppNavigation(repository: HakupivkirjaRepository) {
     factory = AppViewModelProvider.factory(repository)
   )
 
+  val historyViewModel: com.tanjan.hakupivkirja.ui.viewmodels.HistoryViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+    factory = AppViewModelProvider.factory(repository)
+  )
+
   // 2. Kerää tilat (state) täällä, korkeimmalla tasolla.
   val snackbarHostState = remember { SnackbarHostState() }
   val uiState by trainingSessionViewModel.uiState.collectAsState()
@@ -163,7 +167,7 @@ fun AppNavigation(repository: HakupivkirjaRepository) {
           }
           // Reitti uuteen historia-näkymään
           composable("overall") {
-            HistoryScreen()
+            HistoryScreen(historyViewModel = historyViewModel)
             // Jos HistoryScreen tarvitsisi oman ViewModelin, luotaisiin se täällä:
             // val historyViewModel: HistoryViewModel = viewModel(...)
             // HistoryScreen(viewModel = historyViewModel)
