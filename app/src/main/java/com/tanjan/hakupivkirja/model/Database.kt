@@ -10,7 +10,7 @@ import com.tanjan.hakupivkirja.model.dao.WeatherDao
 
 @Database(
   entities = [PistoStateEntity::class, TrainingSession::class, Terrain::class, WeatherEntity::class],
-  version = 9,
+  version = 11,
   exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun trainingSessionDao(): TrainingSessionDao

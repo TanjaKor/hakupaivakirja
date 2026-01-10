@@ -35,5 +35,6 @@ data class PistoStateEntity(
   val decoyPraisesDirectly: Boolean? = null,
   val isRollSolid: Boolean? = null,
   val rollPositionWithDecoy: String? = null, // Where the roll is if not solid
-  val isClosed: Boolean? = false // Is the hide plain or closed
+  val isClosed: Boolean? = false, // Is the hide plain or closed
+  val control: Boolean? = false // Test control or not
 )

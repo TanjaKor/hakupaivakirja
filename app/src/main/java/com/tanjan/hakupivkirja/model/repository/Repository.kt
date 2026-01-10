@@ -34,7 +34,7 @@ class HakupivkirjaRepositoryImpl(
     }
   }
 
-  override suspend fun getCompleteTrainingSession(sessionId: Long): CompleteTrainingSessionData? {
+    override suspend fun getCompleteTrainingSession(sessionId: Long): CompleteTrainingSessionData? {
     return withContext(Dispatchers.IO) {
       val sessionWithPistos = trainingSessionDao.getTrainingSessionWithPistoStates(sessionId)
 

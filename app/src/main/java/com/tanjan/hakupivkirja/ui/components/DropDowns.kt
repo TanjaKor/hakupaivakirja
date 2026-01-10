@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -223,6 +224,7 @@ fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit
         listOf(
         Pair(R.drawable.bone_solid, "Ruoka"),  // Icon and text
         Pair(R.drawable.ball, "Lelu"),
+        Pair(null, "Molemmat" )
         )
 
     val selectedIconResId = remember(selectedText, menuItemData) {
@@ -240,14 +242,22 @@ fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit
                 readOnly = true, //value is not directly edited
                 label = { Text("Palkka", fontSize = 11.sp) },
                 leadingIcon = {
-                    // Only show the icon if something is selected
-                    selectedIconResId?.let { iconRes ->
-                        val iconPainter = painterResource(id = iconRes)
+                    // Tarkistetaan, onko ikoni null.
+                    if (selectedIconResId != null) {
+                        val iconPainter = painterResource(id = selectedIconResId)
                         Icon(
                             painter = iconPainter,
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
                             tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    } else if (selectedText == "Molemmat") {
+                        // Jos ikonia ei ole, näytetään teksti.
+                        Text(
+                            text = "&",
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(start = 12.dp) // Säädä asettelua tarvittaessa
                         )
                     }
                 },
@@ -281,9 +291,19 @@ fun PalkkaDropdown(selectedText: String, onSelectedValueChange: (String) -> Unit
                                 horizontalArrangement = Arrangement.Start,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                // Load the SVG as a painter
-                                val iconPainter = painterResource(id = iconResId)
-                                Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
+                                // Tarkistetaan tässäkin, onko ikoni null.
+                                if (iconResId != null) {
+                                    val iconPainter = painterResource(id = iconResId)
+                                    Icon(painter = iconPainter, contentDescription = null, modifier = Modifier.size(24.dp))
+                                } else {
+                                    // Jos ei, varataan tila ja näytetään "&"
+                                    Text(
+                                        text = "&",
+                                        fontSize = 20.sp,
+                                        modifier = Modifier.width(24.dp),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = text,

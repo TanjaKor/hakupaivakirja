@@ -68,20 +68,29 @@ class HistoryViewModel(
     val data = _uiState.value.yearlyData ?: return emptyList()
     val currentDate = Calendar.getInstance()
     val currentMonth = currentDate.get(Calendar.MONTH) + 1
-    val currentWeek = currentDate.get(Calendar.WEEK_OF_YEAR)
+
 
     val avgPerMonth = if (data.totalTrainings > 0 && currentMonth > 0) {
       data.totalTrainings / currentMonth
     } else 0
 
-    val avgPerWeek = if (data.totalTrainings > 0 && currentWeek > 0) {
-      data.totalTrainings / currentWeek
+    val thisMonth = if (data.totalTrainings > 0 ) {
+      // Filter the sessions already in the state to get the count for the current month
+      val sessionsThisYear = _uiState.value.yearlyData?.sessions ?: emptyList()
+      sessionsThisYear.count { session ->
+        val sessionCalendar = Calendar.getInstance().apply {
+          timeInMillis = session.dateMillis
+        }
+        sessionCalendar.get(Calendar.MONTH) == currentMonth - 1 &&
+            sessionCalendar.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR)
+      }
     } else 0
+
 
     return listOf(
       "Yhteensä" to "${data.totalTrainings} kpl",
       "Keskiarvo/kk" to "$avgPerMonth kpl",
-      "Keskiarvo/vk" to "$avgPerWeek kpl"
+      "Tässä kuussa" to "$thisMonth kpl"
     )
   }
 

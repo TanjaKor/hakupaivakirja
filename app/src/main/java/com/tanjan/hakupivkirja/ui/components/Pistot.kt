@@ -38,6 +38,7 @@ fun Pisto(
   onSuoraPalkkaChange: (Boolean) -> Unit,
   onKiintoRullaChange: (Boolean) -> Unit,
   onIrtorullanSijaintiChange: (String) -> Unit,
+  onControlChange: (Boolean) -> Unit,
   sessionAlarmType: String?
 ) {
   val focusManager = LocalFocusManager.current
@@ -64,8 +65,8 @@ fun Pisto(
           onAvutChange(newValue)
         },
         modifier = Modifier
-            .weight(0.3f)
-            .widthIn(min = 60.dp, max = 90.dp)
+          .weight(0.3f)
+          .widthIn(min = 60.dp, max = 90.dp)
       )
       PalkkaDropdown(
         selectedText = pistoUiState.palkka ?: "",
@@ -73,8 +74,8 @@ fun Pisto(
           onPalkkaChange(newValue)
         },
         modifier = Modifier
-            .weight(0.3f)
-            .widthIn(min = 65.dp, max = 100.dp)
+          .weight(0.3f)
+          .widthIn(min = 65.dp, max = 100.dp)
       )
     }
     if (sessionAlarmType == "haukku") {
@@ -100,8 +101,8 @@ fun Pisto(
           ),
           textStyle = TextStyle(color = MaterialTheme.colorScheme.onSecondaryContainer),
           modifier = Modifier
-              .heightIn(min = 55.dp)
-              .padding(1.dp),
+            .heightIn(min = 55.dp)
+            .padding(1.dp),
         )
     } else {
         OutlinedTextField(
@@ -124,14 +125,14 @@ fun Pisto(
             ),
             textStyle = TextStyle(color = MaterialTheme.colorScheme.onSecondaryContainer),
             modifier = Modifier
-                .heightIn(min = 55.dp)
-                .padding(1.dp),
+              .heightIn(min = 55.dp)
+              .padding(1.dp),
         )
     }
       Row(
           modifier = Modifier
-              .fillMaxWidth()
-              .heightIn(min = 64.dp)
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
       ) {
         CheckBoxWithLabel(
             label = "Sisääntulo",
@@ -160,7 +161,15 @@ fun Pisto(
                       modifier = Modifier.weight(0.5f)
                   )
               }
+          } else {
+            CheckBoxWithLabel(
+              label = "Koehallinta",
+              checked = pistoUiState.control,
+              onCheckedChange = onControlChange,
+              modifier = Modifier.weight(0.5f)
+            )
           }
+
       }
   }
 }
@@ -176,8 +185,8 @@ private fun CheckBoxWithLabel(
     Column(
         horizontalAlignment = horizontalAlignment,
         modifier = modifier
-            .padding(horizontal = 2.dp)
-            .padding(top = 3.dp)
+          .padding(horizontal = 2.dp)
+          .padding(top = 3.dp)
     ) {
         Text(label, fontSize = 11.sp, lineHeight = 9.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
         Checkbox(

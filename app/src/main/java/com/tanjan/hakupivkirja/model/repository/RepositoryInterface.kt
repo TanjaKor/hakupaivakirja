@@ -8,6 +8,7 @@ import com.tanjan.hakupivkirja.model.WeatherEntity
 import kotlinx.coroutines.flow.Flow
 
 interface HakupivkirjaRepository {
+
   fun getAllTrainingSessions(): Flow<List<TrainingSession>>
 
   // Get a single training session by ID

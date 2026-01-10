@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -47,8 +48,7 @@ fun Valintarivi(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+            .padding(bottom = 8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -57,7 +57,7 @@ fun Valintarivi(
         ) {
             uiState.currentTrainingSession?.dateMillis?.let {
                 DatePickerFieldToModal(
-                    modifier = Modifier.weight(1.2f),
+                    modifier = Modifier.weight(1f).padding(start = 4.dp),
                     selectedDate = uiState.currentTrainingSession?.dateMillis!!,
                     onDateSelected = { selectedDate ->
                         selectedDate.let { dateMillis ->
@@ -81,7 +81,7 @@ fun Valintarivi(
                 }
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(0.dp)){
+            Column{
                 IconButton(
                     onClick = { showSaveTraining = true },
                     modifier = Modifier
@@ -107,21 +107,41 @@ fun Valintarivi(
             }
 
         }
-        OutlinedTextField(
-            value = uiState.currentTrainingSession?.shortDescription ?: "",
-            onValueChange =  { newDescription ->
-                // text = newDescription // (2) DON'T update local 'text' state
-                // INSTEAD, update ViewModel state
-                trainingSessionViewModel.updatePlanDescription(newDescription) // (3) CALL ViewModel function
-            },
-            keyboardOptions = KeyboardOptions( // Keep only this one
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Done
-            ),
-            label = { Text("Suunnitelma") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(4.dp)
-        )
+        Row {
+            OutlinedTextField(
+                value = uiState.currentTrainingSession?.shortDescription ?: "",
+                onValueChange = { newDescription ->
+                    // text = newDescription // (2) DON'T update local 'text' state
+                    // INSTEAD, update ViewModel state
+                    trainingSessionViewModel.updatePlanDescription(newDescription) // (3) CALL ViewModel function
+                },
+                keyboardOptions = KeyboardOptions( // Keep only this one
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done
+                ),
+                label = { Text("Suunnitelma") },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 4.dp)
+            )
+
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(start = 4.dp, top = 4.dp, end = 4.dp)
+            ){
+                Text("Käännä rata")
+                Switch(
+                    // Read the value from the uiState
+                    checked = uiState.startFromLeft,
+                    // Call the ViewModel function on change
+                    onCheckedChange = { newValue ->
+                        // Kutsutaan suoraan ViewModelin funktiota
+                        trainingSessionViewModel.setStartFromLeft(newValue)
+                    }
+                )
+
+            }
+        }
     }
 }

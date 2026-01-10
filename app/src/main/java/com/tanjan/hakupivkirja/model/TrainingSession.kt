@@ -17,7 +17,8 @@ data class TrainingSession(
   var notes: String? = null, // Notes after the training
   var overallRating: Int? = null, // 5-point star classification for overall training
   var difficultyRating: Int? = null, // 5-point star classification for difficulty for the dog
-  var trackLength: String = "100m" // e.g., in meters
+  var trackLength: String = "100m", // e.g., in meters
+  val startFromLeft: Boolean = false
 )
 
 // Data class for fetching with related pistostates

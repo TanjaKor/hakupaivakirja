@@ -1,6 +1,7 @@
 package com.tanjan.hakupivkirja.ui.viewmodels
 
 //import com.tanjan.hakupivkirja.model.repository.WeatherRepository
+
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,18 +18,11 @@ import com.tanjan.hakupivkirja.model.WeatherEntity
 import com.tanjan.hakupivkirja.model.repository.HakupivkirjaRepository
 import com.tanjan.hakupivkirja.model.repository.NetworkWeatherRepository
 import com.tanjan.hakupivkirja.network.WeatherDetails
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-//sealed interface WeatherUiState {
-//  data class Success(val weather: String) : WeatherUiState
-//  object Error : WeatherUiState
-//  object Loading : WeatherUiState
-//}
 
 class TrainingSessionViewModel(
   private val repository: HakupivkirjaRepository,
@@ -114,6 +108,16 @@ class TrainingSessionViewModel(
     }
   }
 
+  fun setStartFromLeft(startFromLeft: Boolean) {
+    _uiState.update { currentState ->
+      currentState.copy(
+
+          startFromLeft = startFromLeft
+
+      )
+    }
+  }
+
   fun saveTrainingPlan() {
     val currentSession = _uiState.value.currentTrainingSession
 
@@ -124,6 +128,7 @@ class TrainingSessionViewModel(
         notes = null, // Or empty string, depending on your preference/DB
         overallRating = null,
         difficultyRating = null,
+        startFromLeft = currentSession.startFromLeft
         // Add any other fields that should be cleared for a "plan"
         // e.g., weather data if it's only recorded post-training
       )
@@ -215,7 +220,8 @@ class TrainingSessionViewModel(
         totalPistoCount = 0,
         isLoading = false,
         isSaving = false,
-        error = null
+        error = null,
+        startFromLeft = false
       )
     }
   }
@@ -247,10 +253,15 @@ class TrainingSessionViewModel(
   fun updateIrtorullanSijainti(pistoIndex: Int, irtorullanSijainti: String) {
     updateMMDetails(pistoIndex, irtorullanSijainti = irtorullanSijainti)
   }
+  fun updateControl(pistoIndex: Int, control: Boolean) {
+    updateMMDetails(pistoIndex, control = control)
+  }
 
   fun updateKiintoRulla(pistoIndex: Int, kiintoRulla: Boolean) {
     updateMMDetails(pistoIndex, kiintoRulla = kiintoRulla)
   }
+
+
 
   fun updateSelectedDate(dateMillis: Long) {
     _uiState.update { currentState ->
@@ -336,7 +347,7 @@ class TrainingSessionViewModel(
     suoraPalkka: Boolean? = null,
     kiintoRulla: Boolean? = null,
     irtorullanSijainti: String? = null,
-
+    control: Boolean? = null
   ) {
     updatePistoState(pistoIndex) { pisto ->
       pisto.copy(
@@ -348,6 +359,7 @@ class TrainingSessionViewModel(
         suoraPalkka = suoraPalkka ?: pisto.suoraPalkka,
         kiintoRulla = kiintoRulla ?: pisto.kiintoRulla,
         irtorullanSijainti = irtorullanSijainti?.trim() ?: pisto.irtorullanSijainti,
+        control = control ?: pisto.control
       )
     }
   }

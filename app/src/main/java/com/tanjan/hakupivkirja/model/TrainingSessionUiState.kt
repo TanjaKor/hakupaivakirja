@@ -18,5 +18,6 @@ data class TrainingSessionUiState(
   val selectedDate: LocalDate? = null,
   val overallRating: Int? = null,
   val difficultyRating: Int? = null,
-  val terrain: Terrain? = null
+  val terrain: Terrain? = null,
+  val startFromLeft: Boolean = false
   )

@@ -15,7 +15,7 @@ data class PistoUiState (
   val haukutError: String? = null, //virheiden tarkasteluun
   val isSaving: Boolean? = false,
   val selectedPistot: Int = 0, //kuinka monta pistoa on valittu,
-
+  val control: Boolean = false
 )
 
 enum class PistoMode {

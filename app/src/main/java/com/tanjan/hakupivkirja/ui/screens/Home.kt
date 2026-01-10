@@ -75,6 +75,9 @@ fun HomeScreen(
             },
             onIrtorullanSijaintiChange = { pistoIndex, irtorullanSijainti ->
                 trainingSessionViewModel.updateIrtorullanSijainti(pistoIndex, irtorullanSijainti)
+            },
+            onControlChange = { pistoIndex, control ->
+                trainingSessionViewModel.updateControl(pistoIndex, control)
             }
         )
     }
