@@ -5,11 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tanjan.hakupivkirja.model.repository.HakupivkirjaRepository
 import com.tanjan.hakupivkirja.model.repository.YearlyTrainingData
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Locale
+import kotlin.math.roundToInt
 
 
 // UI State matching your HistoryScreen structure
@@ -28,6 +32,8 @@ class HistoryViewModel(
   private val _uiState = MutableStateFlow(HistoryUiState())
   val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
 
+  private var observationJob: Job? = null
+
   init {
     loadCurrentYearData()
   }
@@ -38,26 +44,33 @@ class HistoryViewModel(
   }
 
   private fun loadYearData(year: Int) {
-    viewModelScope.launch { // 3. Lisää lokitietoja metodin alkuun
-      Log.d(TAG, "Aloitetaan vuoden $year tietojen lataus...")
+    observationJob?.cancel()
+    
+    observationJob = viewModelScope.launch {
+      Log.d(TAG, "Aloitetaan vuoden $year tietojen seuranta...")
 
-      _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+      _uiState.update { it.copy(isLoading = true, error = null) }
 
       try {
-        val yearlyData = repository.getYearlyTrainingData(year)
-        Log.d(TAG, "Tiedot haettu onnistuneesti vuodelle $year. Data: $yearlyData")
-        _uiState.value = uiState.value.copy(
-          year = year,
-          yearlyData = yearlyData,
-          isLoading = false,
-          error = null
-        )
+        repository.getTrainingSessionsByYear(year).collect {
+          try {
+            val yearlyData = repository.getYearlyTrainingData(year)
+            _uiState.update { currentState ->
+              currentState.copy(
+                year = year,
+                yearlyData = yearlyData,
+                isLoading = false,
+                error = null
+              )
+            }
+          } catch (e: Exception) {
+            Log.e(TAG, "Yhteenvedon laskenta epäonnistui", e)
+            _uiState.update { it.copy(isLoading = false, error = "Laskenta epäonnistui: ${e.message}") }
+          }
+        }
       } catch (e: Exception) {
-        Log.e(TAG, "Tietojen lataus epäonnistui", e)
-        _uiState.value = _uiState.value.copy(
-          isLoading = false,
-          error = "Failed to load data: ${e.message}"
-        )
+        Log.e(TAG, "Tietojen seuranta epäonnistui", e)
+        _uiState.update { it.copy(isLoading = false, error = "Seuranta epäonnistui: ${e.message}") }
       }
     }
   }
@@ -67,22 +80,34 @@ class HistoryViewModel(
   fun getTrainingSummary(): List<Pair<String, String>> {
     val data = _uiState.value.yearlyData ?: return emptyList()
     val currentDate = Calendar.getInstance()
-    val currentMonth = currentDate.get(Calendar.MONTH) + 1
+    val currentYear = currentDate.get(Calendar.YEAR)
+    val currentMonthNow = currentDate.get(Calendar.MONTH) + 1
+    val viewingYear = _uiState.value.year
 
+    val cal = Calendar.getInstance()
+    val latestMonthInSessions = data.sessions.map {
+      cal.timeInMillis = it.dateMillis
+      cal.get(Calendar.MONTH) + 1
+    }.maxOrNull() ?: 1
 
-    val avgPerMonth = if (data.totalTrainings > 0 && currentMonth > 0) {
-      data.totalTrainings / currentMonth
-    } else 0
+    val divisor = when {
+        viewingYear < currentYear -> 12.0
+        viewingYear == currentYear -> maxOf(currentMonthNow, latestMonthInSessions).toDouble()
+        else -> latestMonthInSessions.toDouble()
+    }
 
-    val thisMonth = if (data.totalTrainings > 0 ) {
-      // Filter the sessions already in the state to get the count for the current month
-      val sessionsThisYear = _uiState.value.yearlyData?.sessions ?: emptyList()
-      sessionsThisYear.count { session ->
+    val avgPerMonth = if (data.totalTrainings > 0) {
+      String.format(Locale.getDefault(), "%.1f", data.totalTrainings.toDouble() / divisor)
+    } else "0.0"
+
+    val thisMonthCount = if (viewingYear == currentYear) {
+      val sessions = data.sessions
+      sessions.count { session ->
         val sessionCalendar = Calendar.getInstance().apply {
           timeInMillis = session.dateMillis
         }
-        sessionCalendar.get(Calendar.MONTH) == currentMonth - 1 &&
-            sessionCalendar.get(Calendar.YEAR) == currentDate.get(Calendar.YEAR)
+        sessionCalendar.get(Calendar.MONTH) == currentMonthNow - 1 &&
+            sessionCalendar.get(Calendar.YEAR) == currentYear
       }
     } else 0
 
@@ -90,15 +115,12 @@ class HistoryViewModel(
     return listOf(
       "Yhteensä" to "${data.totalTrainings} kpl",
       "Keskiarvo/kk" to "$avgPerMonth kpl",
-      "Tässä kuussa" to "$thisMonth kpl"
+      "Tässä kuussa" to "$thisMonthCount kpl"
     )
   }
 
   fun getDifficultyDistribution(): List<Pair<String, String>> {
     val sessions = _uiState.value.yearlyData?.sessions ?: return emptyList()
-
-    // Count how many trainings have each difficulty rating (1-5)
-    // This uses TrainingSession.difficultyRating field
     return (1..5).map { rating ->
       val count = sessions.count { it.difficultyRating == rating }
       rating.toString() to count.toString()
@@ -115,59 +137,94 @@ class HistoryViewModel(
     return _uiState.value.yearlyData?.totalTrainings ?: 0
   }
 
-  // ========== TERRAIN DISTRIBUTION FUNCTIONS ==========
+  // ========== TRACK & PISTO STATISTICS ==========
+
+  fun getTrackLengthDistribution(): List<Pair<String, String>> {
+    val stats = _uiState.value.yearlyData?.statistics ?: return emptyList()
+    return stats.trackLengthDistribution.map { (length, count) ->
+      length to count.toString()
+    }.sortedBy { it.first }
+  }
+
+  fun getAverageTrackLength(): String {
+    return _uiState.value.yearlyData?.statistics?.averageTrackLength?.let {
+      String.format("%.0f m", it)
+    } ?: "0 m"
+  }
+
+  fun getPistoAmountDistribution(): List<Pair<String, String>> {
+    val stats = _uiState.value.yearlyData?.statistics ?: return emptyList()
+    return stats.pistoAmountDistribution.map { (range, count) ->
+      range to count.toString()
+    }
+  }
+
+  fun getTyhjaTrainingStats(): List<Pair<String, String>> {
+    val data = _uiState.value.yearlyData ?: return emptyList()
+    val count = data.statistics.tyhjaTrainingCount
+    val percentage = if (data.totalTrainings > 0) {
+      (count.toDouble() / data.totalTrainings * 100).toInt()
+    } else 0
+    
+    return listOf(
+      "Tyhjiä sisältävät" to "$count",
+      "Osuus" to "$percentage %"
+    )
+  }
+
+  // ========== TERRAIN DISTRIBUTION FUNCTIONS (1-3 scale) ==========
 
   /**
-   * Forest Thickness (Maaston peittävyys)
-   * Returns distribution: [("1", "3"), ("2", "5"), ("3", "2"), ("4", "1"), ("5", "0")]
-   * Meaning: 3 trainings had forestThickness=1, 5 had forestThickness=2, etc.
+   * Laskee maaston yleisen haastavuuden jakauman (1-3)
+   * perustuen peittävyyden, korkeuserojen ja kuivuuden keskiarvoon.
    */
+  fun getTerrainOverallDistribution(): List<Pair<String, String>> {
+    val terrainData = _uiState.value.yearlyData?.terrainData ?: return emptyList()
+    
+    // Lasketaan jokaiselle treenille keskiarvo (pyöristettynä lähimpään kokonaislukuun 1-3)
+    val averages = terrainData.mapNotNull { terrain ->
+      val values = listOfNotNull(
+        terrain.forestThickness?.toDouble(),
+        terrain.altitudeChanges?.toDouble(),
+        terrain.moistureLevel?.toDouble()
+      )
+      if (values.isNotEmpty()) values.average().roundToInt() else null
+    }
+
+    return (1..3).map { level ->
+      val count = averages.count { it == level }
+      level.toString() to count.toString()
+    }
+  }
+
   fun getForestThicknessDistribution(): List<Pair<String, String>> {
     val terrainData = _uiState.value.yearlyData?.terrainData ?: return emptyList()
-
-    return (1..5).map { level ->
+    return (1..3).map { level ->
       val count = terrainData.count { it.forestThickness == level }
       level.toString() to count.toString()
     }
   }
 
-  /**
-   * Altitude Changes (Maaston korkeuserot)
-   * Returns distribution of altitudeChanges values (1-5)
-   */
   fun getAltitudeChangesDistribution(): List<Pair<String, String>> {
     val terrainData = _uiState.value.yearlyData?.terrainData ?: return emptyList()
-
-    return (1..5).map { level ->
+    return (1..3).map { level ->
       val count = terrainData.count { it.altitudeChanges == level }
       level.toString() to count.toString()
     }
   }
 
-  /**
-   * Moisture Level (Maaston kuivuus - but inverted!)
-   * Lower moisture = drier, so we might want to invert this for "kuivuus"
-   * Or just show moisture as-is
-   */
   fun getMoistureLevelDistribution(): List<Pair<String, String>> {
     val terrainData = _uiState.value.yearlyData?.terrainData ?: return emptyList()
-
-    return (1..5).map { level ->
+    return (1..3).map { level ->
       val count = terrainData.count { it.moistureLevel == level }
       level.toString() to count.toString()
     }
   }
 
-  /**
-   * Overall terrain difficulty average
-   * This could be calculated as the average of all three terrain metrics
-   */
   fun getTerrainOverallAverage(): String {
     val terrainData = _uiState.value.yearlyData?.terrainData ?: return "0.0"
-
     if (terrainData.isEmpty()) return "0.0"
 
-    // Calculate average across all three metrics for each terrain entry
     val overallScores = terrainData.mapNotNull { terrain ->
       val values = listOfNotNull(
         terrain.forestThickness,
@@ -186,18 +243,17 @@ class HistoryViewModel(
 
   fun getAverageTemperature(): String {
     return _uiState.value.yearlyData?.statistics?.averageTemperature?.let {
-      String.format("%.0f", it) // Round to whole number
+      String.format("%.0f", it)
     } ?: "0"
   }
 
-  /**
-   * Temperature ranges (Lämpötilat)
-   * Groups weather data into temperature buckets
-   */
   fun getTemperatureRanges(): List<Pair<String, String>> {
     val weatherData = _uiState.value.yearlyData?.weatherData ?: return emptyList()
-
     val ranges = listOf(
+      "-10-0°C" to weatherData.count {
+        val temp = it.temperatureCelsius ?: return@count false
+        temp in -10.0..0.0
+      },
       "0-10°C" to weatherData.count {
         val temp = it.temperatureCelsius ?: return@count false
         temp in 0.0..10.0
@@ -211,27 +267,18 @@ class HistoryViewModel(
         temp in 20.0..30.0
       }
     )
-
     return ranges.map { (label, count) -> label to count.toString() }
   }
 
-  /**
-   * Weather conditions (Sääolosuhteet)
-   * Returns the actual weather descriptions from database
-   */
   fun getWeatherConditions(): List<Pair<String, String>> {
     val stats = _uiState.value.yearlyData?.statistics ?: return emptyList()
-
-    // Convert the weather conditions map to list of pairs
-    // Map contains: "clear sky" -> 5, "few clouds" -> 3, etc.
     return stats.weatherConditions
       .map { (condition, count) ->
-        // Capitalize first letter of each word for display
         val displayCondition = condition.split(" ")
-          .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
+          .joinToString(" ") { it.replaceFirstChar { it.uppercase() } }
         displayCondition to count.toString()
       }
-      .sortedByDescending { it.second.toInt() } // Sort by count, most common first
-      .take(5) // Only show top 5 conditions
+      .sortedByDescending { it.second.toInt() }
+      .take(5)
   }
 }

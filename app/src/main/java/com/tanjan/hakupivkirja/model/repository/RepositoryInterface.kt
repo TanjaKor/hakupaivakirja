@@ -63,6 +63,7 @@ data class YearlyTrainingData(
   val sessions: List<TrainingSession>,
   val terrainData: List<Terrain>,
   val weatherData: List<WeatherEntity>,
+  val pistoData: List<PistoStateEntity>,
   val statistics: YearlyStatistics
 )
 
@@ -72,7 +73,11 @@ data class YearlyStatistics(
   val averageTemperature: Double?,
   val terrainDistribution: TerrainDistribution,
   val weatherConditions: Map<String, Int>, // Weather description to count
-  val monthlyBreakdown: Map<Int, Int> // Month (1-12) to training count
+  val monthlyBreakdown: Map<Int, Int>, // Month (1-12) to training count
+  val trackLengthDistribution: Map<String, Int>,
+  val averageTrackLength: Double?,
+  val pistoAmountDistribution: Map<String, Int>, // Ranges: "1-4", "5-7", "8+"
+  val tyhjaTrainingCount: Int // How many trainings had at least one "Tyhja" pisto
 )
 
 data class TerrainDistribution(

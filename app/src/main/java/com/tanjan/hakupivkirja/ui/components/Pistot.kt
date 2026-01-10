@@ -44,7 +44,7 @@ fun Pisto(
   val focusManager = LocalFocusManager.current
 
   Column(
-    verticalArrangement = Arrangement.Bottom,
+    verticalArrangement = Arrangement.Top,
     modifier = Modifier
       .padding(top = 4.dp)
       .pointerInput(Unit) {
@@ -86,7 +86,7 @@ fun Pisto(
               onHaukutChange(newValue)
             }
           },
-          keyboardOptions = KeyboardOptions( // Keep only this one
+          keyboardOptions = KeyboardOptions( 
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Done
           ),
@@ -110,7 +110,7 @@ fun Pisto(
             onValueChange = { newValue ->
                     onIrtorullanSijaintiChange(newValue)
             },
-            keyboardOptions = KeyboardOptions( // Keep only this one
+            keyboardOptions = KeyboardOptions( 
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Done
             ),
@@ -129,10 +129,13 @@ fun Pisto(
               .padding(1.dp),
         )
     }
+    
+    // Checkboxit ryhmiteltynä tiiviimmin
+    Column(
+        verticalArrangement = Arrangement.spacedBy((-12).dp)
+    ) {
       Row(
-          modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 64.dp)
+          modifier = Modifier.fillMaxWidth()
       ) {
         CheckBoxWithLabel(
             label = "Sisääntulo",
@@ -146,6 +149,10 @@ fun Pisto(
             onCheckedChange = onIsClosedChange,
             modifier = Modifier.weight(0.5f)
         )
+      }
+      Row(
+        modifier = Modifier.fillMaxWidth()
+      ) {
           if (sessionAlarmType != "haukku") {
               CheckBoxWithLabel(
                   label = "Suorapalkka",
@@ -169,8 +176,8 @@ fun Pisto(
               modifier = Modifier.weight(0.5f)
             )
           }
-
       }
+    }
   }
 }
 
@@ -184,15 +191,19 @@ private fun CheckBoxWithLabel(
 ) {
     Column(
         horizontalAlignment = horizontalAlignment,
+        verticalArrangement = Arrangement.spacedBy((-12).dp),
         modifier = modifier
           .padding(horizontal = 2.dp)
-          .padding(top = 3.dp)
     ) {
-        Text(label, fontSize = 11.sp, lineHeight = 9.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
+        Text(
+            text = label, 
+            fontSize = 10.sp, 
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            maxLines = 1
+        )
         Checkbox(
             checked = checked,
             onCheckedChange = onCheckedChange
         )
     }
 }
-

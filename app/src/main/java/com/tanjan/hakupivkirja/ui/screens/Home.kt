@@ -1,53 +1,47 @@
 package com.tanjan.hakupivkirja.ui.screens
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.tanjan.hakupivkirja.ui.components.UusiRata
+import com.tanjan.hakupivkirja.ui.components.UusiRataItems
 import com.tanjan.hakupivkirja.ui.components.Valintarivi
 import com.tanjan.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
-
-// NEXTSTEP:
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     trainingSessionViewModel: TrainingSessionViewModel,
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    
-    //tarkastellaan uiState:n muutoksia
     val uiState by trainingSessionViewModel.uiState.collectAsState()
 
-    // Initialize empty training session on first launch
     LaunchedEffect(Unit) {
         if (uiState.currentTrainingSession == null) {
             trainingSessionViewModel.initializeEmptyTrainingSession()
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()) // This will now scroll everything
+    // Käytetään LazyColumnia, jotta Androidin "Capture more" tunnistaa rullauksen paremmin
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Valintarivi(
-            trainingSessionViewModel = trainingSessionViewModel)
-        HorizontalDivider(thickness = 2.dp, modifier = Modifier.padding(bottom = 8.dp))
-        UusiRata(
+        item {
+            Valintarivi(trainingSessionViewModel = trainingSessionViewModel)
+        }
+        
+        item {
+            HorizontalDivider(thickness = 2.dp, modifier = Modifier.padding(bottom = 8.dp))
+        }
+
+        // Siirretään UusiRata itemeiksi, jotta ne ovat osa samaa LazyColumnia
+        UusiRataItems(
             uiState = uiState,
             onPistoModeChange = { pistoIndex, mode ->
                 trainingSessionViewModel.updatePistoMode(pistoIndex, mode)
@@ -81,4 +75,4 @@ fun HomeScreen(
             }
         )
     }
-} // State managed at the parent level
+}

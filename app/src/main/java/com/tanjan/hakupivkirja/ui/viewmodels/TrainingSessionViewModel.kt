@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class TrainingSessionViewModel(
   private val repository: HakupivkirjaRepository,
@@ -62,7 +65,7 @@ class TrainingSessionViewModel(
       setSaving(true)
       setError(null)
       try {
-        Log.d("ViewModelSave", "Before repo call. Session ID: ${trainingSession.id}, Desc: ${trainingSession.shortDescription}, Terrain: Forest${terrain?.forestThickness}") // Log input
+        Log.d("ViewModelSave", "Before repo call. Session ID: ${trainingSession.id}, Desc: ${trainingSession.shortDescription}, StartFromLeft: ${trainingSession.startFromLeft}") 
         // Call repository and get the saved session back (with its correct ID)
         val (savedSessionFromDb, savedTerrainFromDb) = repository.saveTrainingSessionWithTerrain(
         trainingSession,
@@ -71,36 +74,27 @@ class TrainingSessionViewModel(
           weather
         )
 
-        Log.d(
-          "ViewModelSave",
-          "After repo call. DB Session ID: ${savedSessionFromDb.id}, DB Terrain ID: ${savedTerrainFromDb?.id}"
-        )
-
         _uiState.update { currentState ->
-          Log.d("ViewModelSave", "Updating UI State. Current ID before update: ${currentState.currentTrainingSession?.id}")
           currentState.copy(
             isSaving = false,
             currentTrainingSession = savedSessionFromDb,
             terrain = savedTerrainFromDb,
-            error = null, // Clear previous error on success
-            saveSuccessMessage = true // You might have a flag for UI to react
+            error = null,
+            saveSuccessMessage = true
           )
         }
-        Log.d("ViewModelSave", "UI State potentially updated. New current ID: ${_uiState.value.currentTrainingSession?.id}")
-        // Consider what should happen in the UI after save for both plan and completed
-        // Maybe emit a one-time event to navigate or show a message
       } catch (e: Exception) {
         Log.e("ViewModelSave", "Error saving session: ${e.message}", e)
         setError("Failed to save training session: ${e.message}")
         setSaving(false)
       } finally {
         if (_uiState.value.isSaving) {
-          Log.d("ViewModelSave", "Finally block: Resetting isSaving.")
           setSaving(false)
         }
       }
     }
   }
+  
   // Function to be called by the UI after the message has been shown
   fun saveMessageShown() {
     _uiState.update { currentState ->
@@ -111,28 +105,27 @@ class TrainingSessionViewModel(
   fun setStartFromLeft(startFromLeft: Boolean) {
     _uiState.update { currentState ->
       currentState.copy(
-
-          startFromLeft = startFromLeft
-
+          startFromLeft = startFromLeft,
+          currentTrainingSession = currentState.currentTrainingSession?.copy(
+            startFromLeft = startFromLeft
+          )
       )
     }
   }
 
   fun saveTrainingPlan() {
-    val currentSession = _uiState.value.currentTrainingSession
+    val currentState = _uiState.value
+    val currentSession = currentState.currentTrainingSession
 
     if (currentSession != null) {
-      // Create a 'plan' version of the session:
-      // Keep essential details, but clear out fields meant for completed training.
+      // Ensure the plan session has the current startFromLeft value
       val planSession = currentSession.copy(
-        notes = null, // Or empty string, depending on your preference/DB
+        notes = null,
         overallRating = null,
         difficultyRating = null,
-        startFromLeft = currentSession.startFromLeft
-        // Add any other fields that should be cleared for a "plan"
-        // e.g., weather data if it's only recorded post-training
+        startFromLeft = currentState.startFromLeft 
       )
-      val pistoEntities = convertToEntityStates() // Pass the current pisto UI states
+      val pistoEntities = convertToEntityStates()
 
       saveTrainingSessionWithTerrainInternal(planSession, pistoEntities, null)
     } else {
@@ -149,24 +142,25 @@ class TrainingSessionViewModel(
     altitudeChanges: Int,
     weatherData: WeatherDetails?
   ) {
-    val currentSession = _uiState.value.currentTrainingSession
+    val currentState = _uiState.value
+    val currentSession = currentState.currentTrainingSession
     if (currentSession != null) {
       val completedSession = currentSession.copy(
         notes = notes,
         overallRating = rating,
-        difficultyRating = difficulty
+        difficultyRating = difficulty,
+        startFromLeft = currentState.startFromLeft // Ensure we use current UI state
       )
 
-      // Create the Terrain object.
       val terrainDetails = Terrain(
-        trainingSessionId = null, // Will be updated by repository
+        trainingSessionId = null,
         forestThickness = forestThickness,
         altitudeChanges = altitudeChanges,
         moistureLevel = moistureLevel
       )
 
       val weatherDetails = WeatherEntity(
-        trainingSessionId = null, // Will be updated by repository
+        trainingSessionId = null,
         weatherDescription = weatherData?.weather?.get(0)?.description,
         temperatureCelsius = weatherData?.main?.temp,
         windSpeed = weatherData?.wind?.speed,
@@ -183,7 +177,6 @@ class TrainingSessionViewModel(
 
   fun getWeather(trainingLocation: String
   ) {
-    // launching coroutine
     viewModelScope.launch {
       try {
         isLoadingWeather = true
@@ -212,11 +205,12 @@ class TrainingSessionViewModel(
           notes = null,
           overallRating = null,
           difficultyRating = null,
-          trackLength = "100m"
+          trackLength = "100m",
+          startFromLeft = false
         ),
         pistoStates = emptyMap(),
-        selectedPistot = 3, // Default minimum
-        maxPistot = 3,     // Default maximum
+        selectedPistot = 3,
+        maxPistot = 3,
         totalPistoCount = 0,
         isLoading = false,
         isSaving = false,
@@ -268,7 +262,7 @@ class TrainingSessionViewModel(
       currentState.copy(
         currentTrainingSession = currentState.currentTrainingSession?.copy(
           dateMillis = dateMillis
-        ) // If currentTrainingSession is null, initializeNewSessionForm should have handled it
+        )
       )
     }
   }
@@ -283,7 +277,6 @@ class TrainingSessionViewModel(
     }
   }
 
-  // MODIFIED: This function now updates trackLength within currentTrainingSession
   fun updateTrackLengthAndMaxPistot(trackLengthString: String, correspondingMaxPistot: Int) {
     _uiState.update { currentState ->
       val newSelectedPistot = if (currentState.selectedPistot > correspondingMaxPistot) {
@@ -294,19 +287,16 @@ class TrainingSessionViewModel(
 
       currentState.copy(
         currentTrainingSession = currentState.currentTrainingSession?.copy(
-          trackLength = trackLengthString // Update STRING track length IN THE ENTITY
-        ) ?: TrainingSession(trackLength = trackLengthString), // Create new if null (should be rare if init is correct)
-        maxPistot = correspondingMaxPistot, // Update maxPistot in uiState
-        selectedPistot = newSelectedPistot // Update selectedPistot in uiState
-        // No separate uiState.trackLength to update anymore
+          trackLength = trackLengthString
+        ) ?: TrainingSession(trackLength = trackLengthString),
+        maxPistot = correspondingMaxPistot,
+        selectedPistot = newSelectedPistot
       )
     }
   }
 
   fun updateAlarmType(alarmType: String?) {
     _uiState.update { currentState ->
-      if (currentState.currentTrainingSession == null) {
-      }
       currentState.copy(
         currentTrainingSession = currentState.currentTrainingSession?.copy(
           alarmType = alarmType
@@ -315,7 +305,6 @@ class TrainingSessionViewModel(
     }
   }
 
-  // Update selected number of pistot
   fun updateSelectedPistot(newPistot: Int) {
     _uiState.update { currentState ->
       currentState.copy(
@@ -325,8 +314,8 @@ class TrainingSessionViewModel(
     }
   }
 
-  // Update pisto mode (DEFAULT, TYHJA, MM)
-  fun updatePistoMode(pistoIndex: Int, mode: PistoMode) {    _uiState.update { currentState ->
+  fun updatePistoMode(pistoIndex: Int, mode: PistoMode) {    
+    _uiState.update { currentState ->
       val updatedPistos = currentState.pistoStates.toMutableMap()
       val currentPisto = updatedPistos[pistoIndex]
         ?: PistoUiState(pistoIndex = pistoIndex, selectedPistot = currentState.selectedPistot)
@@ -336,7 +325,6 @@ class TrainingSessionViewModel(
     }
   }
 
-  // Update MM-specific details for a pisto (all MM-related fields)
   fun updateMMDetails(
     pistoIndex: Int,
     haukut: String? = null,
@@ -364,12 +352,10 @@ class TrainingSessionViewModel(
     }
   }
 
-  // Get a specific pisto's state
   fun getPistoState(pistoIndex: Int): PistoUiState? {
     return _uiState.value.pistoStates[pistoIndex]
   }
 
-  // Clear all pisto states (reset to default)
   fun clearAllPistos() {
     _uiState.update { currentState ->
       currentState.copy(pistoStates = emptyMap())
@@ -380,12 +366,11 @@ class TrainingSessionViewModel(
     _uiState.update { currentState ->
       currentState.copy(
         maxPistot = newMaxPistot,
-        selectedPistot = 3 // Reset to minimum when track changes
+        selectedPistot = 3
       )
     }
   }
 
-  // Helper function to update a specific pisto state
   private fun updatePistoState(pistoIndex: Int, update: (PistoUiState) -> PistoUiState) {
     _uiState.update { currentState ->
       val currentPisto = currentState.pistoStates[pistoIndex]
@@ -398,7 +383,6 @@ class TrainingSessionViewModel(
     }
   }
 
-  // Convert UI state to database entities for saving
   private fun convertToEntityStates(): List<PistoStateEntity> {
     return _uiState.value.pistoStates.map { (index, uiState) ->
       PistoStateEntity(
@@ -416,17 +400,51 @@ class TrainingSessionViewModel(
         rollPositionWithDecoy = uiState.irtorullanSijainti,
         isClosed = uiState.isClosed,
         comeToMiddle = uiState.comeToMiddle,
-        trainingSessionId = 0L // Will be set by Room after TrainingSession is inserted
+        control = uiState.control,
+        trainingSessionId = 0L
       )
     }
   }
 
-  // Set saving state
+  fun generateShareText(): String {
+    val state = _uiState.value
+    val session = state.currentTrainingSession ?: return ""
+    
+    val date = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(session.dateMillis))
+    
+    val sb = StringBuilder()
+    sb.append("📋 Treenisuunnitelma: ${session.shortDescription ?: "Hakutreeni"}\n")
+    sb.append("📅 Päivämäärä: $date\n")
+    sb.append("🐕 Koira: ${session.dogName}\n")
+    sb.append("📏 Radan pituus: ${session.trackLength}\n")
+    sb.append("➡️ Aloitus: ${if (state.startFromLeft) "Vasen" else "Oikea"}\n")
+    sb.append("🔢 Pistot: ${state.selectedPistot} kpl\n")
+    sb.append("\n--- Pistot ---\n")
+    
+    for (i in 1..state.selectedPistot) {
+      val pisto = state.pistoStates[i]
+      sb.append("\n📍 Pisto $i: ")
+      if (pisto == null) {
+        sb.append("Oletus\n")
+      } else {
+        sb.append("${pisto.currentMode}\n")
+        if (pisto.currentMode == PistoMode.MM) {
+          if (!pisto.haukut.isNullOrBlank()) sb.append("  - Haukut: ${pisto.haukut}\n")
+          if (!pisto.avut.isNullOrBlank()) sb.append("  - Avut: ${pisto.avut}\n")
+          if (!pisto.palkka.isNullOrBlank()) sb.append("  - Palkka: ${pisto.palkka}\n")
+          if (pisto.isClosed) sb.append("  - Suljettu piilo\n")
+          if (pisto.control) sb.append("  - Hallinta\n")
+        }
+      }
+    }
+    
+    return sb.toString()
+  }
+
   private fun setSaving(isSaving: Boolean) {
     _uiState.update { it.copy(isSaving = isSaving) }
   }
 
-  // Set error state
   private fun setError(error: String?) {
     _uiState.update { it.copy(error = error) }
   }

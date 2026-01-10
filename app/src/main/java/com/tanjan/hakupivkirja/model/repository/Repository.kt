@@ -82,9 +82,8 @@ class HakupivkirjaRepositoryImpl(
     return withContext(Dispatchers.IO) {
       val (startMillis, endMillis) = getYearRange(year)
 
-      // KORJATTU VERSIO
+      // Get sessions first
       val sessions = trainingSessionDao.getTrainingSessionsByYear(startMillis, endMillis).first()
-
       val totalTrainings = sessions.size
 
       if (totalTrainings == 0) {
@@ -94,13 +93,18 @@ class HakupivkirjaRepositoryImpl(
           sessions = emptyList(),
           terrainData = emptyList(),
           weatherData = emptyList(),
+          pistoData = emptyList(),
           statistics = YearlyStatistics(
             averageDifficulty = null,
             averageRating = null,
             averageTemperature = null,
             terrainDistribution = TerrainDistribution(0.0, 0.0, 0.0),
             weatherConditions = emptyMap(),
-            monthlyBreakdown = emptyMap()
+            monthlyBreakdown = emptyMap(),
+            trackLengthDistribution = emptyMap(),
+            averageTrackLength = null,
+            pistoAmountDistribution = emptyMap(),
+            tyhjaTrainingCount = 0
           )
         )
       }
@@ -108,12 +112,13 @@ class HakupivkirjaRepositoryImpl(
       // Get session IDs
       val sessionIds = sessions.map { it.id }
 
-      // Get terrain and weather data
+      // Get terrain, weather and pisto data
       val terrainData = terrainDao.getTerrainForSessions(sessionIds)
       val weatherData = weatherDao.getWeatherForSessions(sessionIds)
+      val pistoData = trainingSessionDao.getPistoStatesForSessions(sessionIds)
 
       // Calculate statistics
-      val statistics = calculateYearlyStatistics(sessions, terrainData, weatherData)
+      val statistics = calculateYearlyStatistics(sessions, terrainData, weatherData, pistoData)
 
       YearlyTrainingData(
         year = year,
@@ -121,6 +126,7 @@ class HakupivkirjaRepositoryImpl(
         sessions = sessions,
         terrainData = terrainData,
         weatherData = weatherData,
+        pistoData = pistoData,
         statistics = statistics
       )
     }
@@ -142,7 +148,8 @@ class HakupivkirjaRepositoryImpl(
   private fun calculateYearlyStatistics(
     sessions: List<TrainingSession>,
     terrainData: List<Terrain>,
-    weatherData: List<WeatherEntity>
+    weatherData: List<WeatherEntity>,
+    pistoData: List<PistoStateEntity>
   ): YearlyStatistics {
     // Calculate average difficulty
     val difficulties = sessions.mapNotNull { it.difficultyRating }
@@ -168,7 +175,6 @@ class HakupivkirjaRepositoryImpl(
       val validMoistureValues = terrainData.map { it.moistureLevel }.filterNotNull()
       val validAltitudeValues = terrainData.map { it.altitudeChanges }.filterNotNull()
       TerrainDistribution(
-        // 2. Laske keskiarvo vain, jos listalla on arvoja. Muuten palauta 0.0
         averageForestThickness = if (validThicknessValues.isNotEmpty()) validThicknessValues.average() else 0.0,
         averageMoistureLevel = if (validMoistureValues.isNotEmpty()) validMoistureValues.average() else 0.0,
         averageAltitudeChanges = if (validAltitudeValues.isNotEmpty()) validAltitudeValues.average() else 0.0
@@ -192,13 +198,42 @@ class HakupivkirjaRepositoryImpl(
       }
       .mapValues { it.value.size }
 
+    // --- TRACK LENGTH STATISTICS ---
+    val trackLengths = sessions.map { it.trackLength.filter { char -> char.isDigit() }.toDoubleOrNull() ?: 0.0 }
+    val averageTrackLength = if (trackLengths.isNotEmpty()) trackLengths.average() else null
+    val trackLengthDistribution = sessions
+      .groupingBy { it.trackLength }
+      .eachCount()
+
+    // --- PISTO AMOUNT STATISTICS ---
+    val pistosBySession = pistoData.groupBy { it.trainingSessionId }
+    val pistoAmounts = sessions.map { session -> 
+      pistosBySession[session.id]?.size ?: 0 
+    }
+    
+    val pistoAmountDistribution = mapOf(
+      "1-4" to pistoAmounts.count { it in 1..4 },
+      "5-7" to pistoAmounts.count { it in 5..7 },
+      "8+" to pistoAmounts.count { it >= 8 }
+    )
+
+    // --- TYHJÄ STATISTICS ---
+    val tyhjaTrainingCount = sessions.count { session ->
+      val sessionPistos = pistosBySession[session.id] ?: emptyList()
+      sessionPistos.any { it.type == "Tyhja" }
+    }
+
     return YearlyStatistics(
       averageDifficulty = averageDifficulty,
       averageRating = averageRating,
       averageTemperature = averageTemperature,
       terrainDistribution = terrainDistribution,
       weatherConditions = weatherConditions,
-      monthlyBreakdown = monthlyBreakdown
+      monthlyBreakdown = monthlyBreakdown,
+      trackLengthDistribution = trackLengthDistribution,
+      averageTrackLength = averageTrackLength,
+      pistoAmountDistribution = pistoAmountDistribution,
+      tyhjaTrainingCount = tyhjaTrainingCount
     )
   }
 

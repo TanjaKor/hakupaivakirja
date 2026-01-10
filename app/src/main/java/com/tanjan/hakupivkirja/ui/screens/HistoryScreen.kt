@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.TableChart
@@ -59,7 +60,8 @@ data class Section(
   val icon: ImageVector,
   val challengeContent: ChallengeData? = null,
   val temperatureContent: TemperatureData? = null,
-  val trainingContent: TrainingData? = null
+  val trainingContent: TrainingData? = null,
+  val trackContent: TrackData? = null
 )
 
 data class TrainingData(
@@ -79,6 +81,13 @@ data class TemperatureData(
   val average: Pair<String, String>,
   val temperatures: List<Pair<String, String>>,
   val conditions: List<Pair<String, String>>
+)
+
+data class TrackData(
+  val averageLength: String,
+  val lengthDistribution: List<Pair<String, String>>,
+  val pistoDistribution: List<Pair<String, String>>,
+  val tyhjaStats: List<Pair<String, String>>
 )
 
 @Composable
@@ -155,12 +164,13 @@ fun buildSectionsFromData(viewModel: HistoryViewModel): List<Section> {
   val avgDifficulty = viewModel.getAverageDifficulty()
   val terrainAvg = viewModel.getTerrainOverallAverage()
   val avgTemp = viewModel.getAverageTemperature()
+  val avgTrack = viewModel.getAverageTrackLength()
 
   return listOf(
     Section(
       id = "treenimilarat",
       title = "Yleistä",
-      summary = "$totalTrainings kpl • vaikeutaso avg $avgDifficulty",
+      summary = "$totalTrainings kpl • vaikeutaso ka. $avgDifficulty",
       trainingContent = TrainingData(
         summary = viewModel.getTrainingSummary(),
         difficulty = viewModel.getDifficultyDistribution()
@@ -170,15 +180,29 @@ fun buildSectionsFromData(viewModel: HistoryViewModel): List<Section> {
       icon = Icons.Default.TableChart
     ),
     Section(
+      id = "radat",
+      title = "Radat & Pistot",
+      summary = "Avg pituus: $avgTrack",
+      trackContent = TrackData(
+        averageLength = avgTrack,
+        lengthDistribution = viewModel.getTrackLengthDistribution(),
+        pistoDistribution = viewModel.getPistoAmountDistribution(),
+        tyhjaStats = viewModel.getTyhjaTrainingStats()
+      ),
+      colors = primaryLight to primaryDark,
+      bgColor = secondaryLight,
+      icon = Icons.Default.Analytics
+    ),
+    Section(
       id = "haasteet",
       title = "Maasto",
-      summary = "Keskiarvo: $terrainAvg",
+      summary = "Keskiarvo $terrainAvg",
       challengeContent = ChallengeData(
         average = "Keskiarvo" to terrainAvg,
-        overall = viewModel.getDifficultyDistribution(), // Using general difficulty as "overall"
-        coverage = viewModel.getForestThicknessDistribution(), // forestThickness = coverage
-        elevation = viewModel.getAltitudeChangesDistribution(), // altitudeChanges = elevation
-        dryness = viewModel.getMoistureLevelDistribution() // moistureLevel = dryness (inverted logic)
+        overall = viewModel.getTerrainOverallDistribution(), // NYT 1-3 asteikolla (maaston keskiarvo)
+        coverage = viewModel.getForestThicknessDistribution(),
+        elevation = viewModel.getAltitudeChangesDistribution(),
+        dryness = viewModel.getMoistureLevelDistribution()
       ),
       colors = primaryLight to primaryDark,
       bgColor = secondaryLight,
@@ -187,7 +211,7 @@ fun buildSectionsFromData(viewModel: HistoryViewModel): List<Section> {
     Section(
       id = "lampotila",
       title = "Sää",
-      summary = "Keskiarvo: ${avgTemp}°C",
+      summary = "Keskiarvo ${avgTemp}°C",
       temperatureContent = TemperatureData(
         average = "Keskilämpötila" to "${avgTemp}°C",
         temperatures = viewModel.getTemperatureRanges(),
@@ -259,6 +283,7 @@ fun SectionCard(section: Section, isExpanded: Boolean, onToggle: () -> Unit) {
             section.trainingContent != null -> TrainingContent(data = section.trainingContent)
             section.challengeContent != null -> ChallengeContent(data = section.challengeContent)
             section.temperatureContent != null -> TemperatureContent(data = section.temperatureContent)
+            section.trackContent != null -> TrackContent(data = section.trackContent)
             section.data != null -> DataContent(data = section.data)
           }
         }
@@ -284,6 +309,16 @@ private fun TrainingContent(data: TrainingData) {
       average = calculateAverage(data.difficulty),
       values = data.difficulty
     )
+  }
+}
+
+@Composable
+private fun TrackContent(data: TrackData) {
+  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    DataContent(data = listOf("Keskipituus" to data.averageLength))
+    PairValueRow(title = "Ratojen pituudet", values = data.lengthDistribution)
+    PairValueRow(title = "Pistomäärät (kpl/treeni)", values = data.pistoDistribution)
+    PairValueRow(title = "Tyhjät pistot", values = data.tyhjaStats)
   }
 }
 
@@ -378,7 +413,7 @@ private fun PairValueRow(
             ) {
               Text(text = key, fontSize = 12.sp, color = Color.Gray)
               Text(
-                text = "$value kpl",
+                text = if (value.contains("kpl") || value.contains("%") || value.contains("m")) value else "$value kpl",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1E293B)

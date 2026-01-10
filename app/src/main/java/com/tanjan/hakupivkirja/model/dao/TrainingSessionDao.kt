@@ -43,6 +43,10 @@ interface TrainingSessionDao {
   @Query("SELECT * FROM pisto_states WHERE trainingSessionId = :sessionId ORDER BY pistoIndex ASC")
   suspend fun getPistoStatesForSession(sessionId: Long): List<PistoStateEntity>
 
+  // Get pisto states for multiple sessions
+  @Query("SELECT * FROM pisto_states WHERE trainingSessionId IN (:sessionIds)")
+  suspend fun getPistoStatesForSessions(sessionIds: List<Long>): List<PistoStateEntity>
+
   // Get all training session IDs from a specific year
   @Query("SELECT id FROM training_sessions WHERE dateMillis >= :startMillis AND dateMillis <= :endMillis")
   suspend fun getSessionIdsByYear(startMillis: Long, endMillis: Long): List<Long>
