@@ -5,17 +5,37 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
@@ -25,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.tanjan.hakupivkirja.ui.theme.primaryLight
 
 @Composable
 fun ShareTrainingDialog(
@@ -35,7 +54,6 @@ fun ShareTrainingDialog(
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
 
-    // Galleria-laukaisin: Kun käyttäjä valitsee kuvan (esim. juuri ottamansa kuvakaappauksen)
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -70,7 +88,7 @@ fun ShareTrainingDialog(
                         text = "Jaa treeni",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color = primaryLight
+                        color = MaterialTheme.colorScheme.primary
                     )
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, contentDescription = "Sulje")
@@ -80,7 +98,7 @@ fun ShareTrainingDialog(
                 // --- SCREENSHOT OHJE ---
                 Card(
                     colors = CardDefaults.cardColors(
-                        containerColor = primaryLight.copy(alpha = 0.1f)
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -89,21 +107,20 @@ fun ShareTrainingDialog(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(Icons.Default.Info, contentDescription = null, tint = primaryLight)
+                            Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Text(
-                                text = "Vinkki: Ota tästä näkymästä kuvakaappaus radasta ja jaa se kuva-painikkeella!",
+                                text = "Vinkki: Ota suunnittelunäkymästä kuvakaappaus ja jaa se painamalla alla olevaa painiketta!",
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color.DarkGray
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         
-                        // Uusi painike kuvakaappauksen jakamiseen galleriasta
                         OutlinedButton(
                             onClick = { photoPickerLauncher.launch("image/*") },
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryLight)
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary)
                         ) {
                             Icon(Icons.Default.Image, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
@@ -116,14 +133,16 @@ fun ShareTrainingDialog(
                 Text(
                     text = "Tai jaa pelkkä teksti:",
                     style = MaterialTheme.typography.labelLarge,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 200.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
                     shape = RoundedCornerShape(12.dp),
                     border = CardDefaults.outlinedCardBorder()
                 ) {
@@ -136,7 +155,7 @@ fun ShareTrainingDialog(
                             text = shareText,
                             fontFamily = FontFamily.Monospace,
                             fontSize = 13.sp,
-                            color = Color(0xFF334155)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -164,7 +183,7 @@ fun ShareTrainingDialog(
                             onDismiss()
                         },
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = primaryLight),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(Icons.Default.Share, null, modifier = Modifier.size(18.dp))

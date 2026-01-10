@@ -27,6 +27,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,13 +44,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tanjan.hakupivkirja.ui.theme.primaryDark
-import com.tanjan.hakupivkirja.ui.theme.primaryLight
-import com.tanjan.hakupivkirja.ui.theme.secondaryLight
 import com.tanjan.hakupivkirja.ui.viewmodels.HistoryViewModel
 
 
-// Keep your existing data classes
+// Data classes remain same
 data class Section(
   val id: String,
   val title: String,
@@ -107,10 +105,9 @@ fun HistoryScreen( historyViewModel: HistoryViewModel) {
       "Kausi ${uiState.year}",
       fontSize = 24.sp,
       fontWeight = FontWeight.Bold,
-      color = primaryLight
+      color = MaterialTheme.colorScheme.primary
     )
 
-    // Show loading indicator
     if (uiState.isLoading) {
       Box(
         modifier = Modifier.fillMaxWidth().padding(32.dp),
@@ -120,25 +117,22 @@ fun HistoryScreen( historyViewModel: HistoryViewModel) {
       }
     }
 
-    // Show error if any
     uiState.error?.let { error ->
       Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-          containerColor = Color.Red.copy(alpha = 0.1f)
+          containerColor = MaterialTheme.colorScheme.errorContainer
         )
       ) {
         Text(
           text = error,
           modifier = Modifier.padding(16.dp),
-          color = Color.Red
+          color = MaterialTheme.colorScheme.onErrorContainer
         )
       }
     }
 
-    // Show data when available
     uiState.yearlyData?.let { yearlyData ->
-      // Build sections dynamically from real data
       val sectionsData = buildSectionsFromData(historyViewModel)
 
       sectionsData.forEach { section ->
@@ -157,7 +151,6 @@ fun HistoryScreen( historyViewModel: HistoryViewModel) {
   }
 }
 
-// Function to build sections from real data
 @Composable
 fun buildSectionsFromData(viewModel: HistoryViewModel): List<Section> {
   val totalTrainings = viewModel.getTotalTrainings()
@@ -175,56 +168,55 @@ fun buildSectionsFromData(viewModel: HistoryViewModel): List<Section> {
         summary = viewModel.getTrainingSummary(),
         difficulty = viewModel.getDifficultyDistribution()
       ),
-      colors = primaryLight to primaryDark,
-      bgColor = secondaryLight,
+      colors = MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.primaryContainer,
+      bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
       icon = Icons.Default.TableChart
     ),
     Section(
       id = "radat",
       title = "Radat & Pistot",
-      summary = "Avg pituus: $avgTrack",
+      summary = "Ka. pituus: $avgTrack",
       trackContent = TrackData(
         averageLength = avgTrack,
         lengthDistribution = viewModel.getTrackLengthDistribution(),
         pistoDistribution = viewModel.getPistoAmountDistribution(),
         tyhjaStats = viewModel.getTyhjaTrainingStats()
       ),
-      colors = primaryLight to primaryDark,
-      bgColor = secondaryLight,
+      colors = MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.primaryContainer,
+      bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
       icon = Icons.Default.Analytics
     ),
     Section(
       id = "haasteet",
       title = "Maasto",
-      summary = "Keskiarvo $terrainAvg",
+      summary = "Ka. $terrainAvg",
       challengeContent = ChallengeData(
         average = "Keskiarvo" to terrainAvg,
-        overall = viewModel.getTerrainOverallDistribution(), // NYT 1-3 asteikolla (maaston keskiarvo)
+        overall = viewModel.getTerrainOverallDistribution(),
         coverage = viewModel.getForestThicknessDistribution(),
         elevation = viewModel.getAltitudeChangesDistribution(),
         dryness = viewModel.getMoistureLevelDistribution()
       ),
-      colors = primaryLight to primaryDark,
-      bgColor = secondaryLight,
+      colors = MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.primaryContainer,
+      bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
       icon = Icons.Default.Terrain
     ),
     Section(
       id = "lampotila",
       title = "Sää",
-      summary = "Keskiarvo ${avgTemp}°C",
+      summary = "Ka. ${avgTemp}°C",
       temperatureContent = TemperatureData(
         average = "Keskilämpötila" to "${avgTemp}°C",
         temperatures = viewModel.getTemperatureRanges(),
         conditions = viewModel.getWeatherConditions()
       ),
-      colors = primaryLight to primaryDark,
-      bgColor = secondaryLight,
+      colors = MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.primaryContainer,
+      bgColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
       icon = Icons.Default.Thermostat
     )
   )
 }
 
-// Keep all your existing composable functions unchanged
 @Composable
 fun SectionCard(section: Section, isExpanded: Boolean, onToggle: () -> Unit) {
   Card(
@@ -254,20 +246,20 @@ fun SectionCard(section: Section, isExpanded: Boolean, onToggle: () -> Unit) {
               modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(Color.White.copy(0.2f)),
+                .background(MaterialTheme.colorScheme.onPrimary.copy(0.2f)),
               contentAlignment = Alignment.Center
             ) {
-              Icon(section.icon, null, tint = Color.White, modifier = Modifier.size(20.dp))
+              Icon(section.icon, null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(20.dp))
             }
             Column {
-              Text(section.title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-              Text(section.summary, fontSize = 13.sp, color = Color.White.copy(0.9f))
+              Text(section.title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onPrimary)
+              Text(section.summary, fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimary.copy(0.9f))
             }
           }
           Icon(
             if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
             null,
-            tint = Color.White
+            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
           )
         }
       }
@@ -315,7 +307,7 @@ private fun TrainingContent(data: TrainingData) {
 @Composable
 private fun TrackContent(data: TrackData) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    DataContent(data = listOf("Keskipituus" to data.averageLength))
+    DataContent(data = listOf("Ka. pituus" to data.averageLength))
     PairValueRow(title = "Ratojen pituudet", values = data.lengthDistribution)
     PairValueRow(title = "Pistomäärät (kpl/treeni)", values = data.pistoDistribution)
     PairValueRow(title = "Tyhjät pistot", values = data.tyhjaStats)
@@ -372,7 +364,7 @@ private fun PairValueRow(
   average: String? = null
 ) {
   Card(
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     shape = RoundedCornerShape(8.dp),
     modifier = Modifier.fillMaxWidth()
   ) {
@@ -382,13 +374,13 @@ private fun PairValueRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        Text(title, fontSize = 18.sp, color = Color(0xFF1E293B), fontWeight = FontWeight.SemiBold)
+        Text(title, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold)
       }
       if (average != null) {
         Text(
-          text = "Keskiarvo $average",
+          text = "Ka. $average",
           fontSize = 17.sp,
-          color = Color(0xFF1E293B),
+          color = MaterialTheme.colorScheme.onSurface,
           modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
         )
       }
@@ -400,7 +392,7 @@ private fun PairValueRow(
         values.forEach { (key, value) ->
           Card(
             modifier = Modifier.weight(1f),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(8.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
           ) {
@@ -411,12 +403,12 @@ private fun PairValueRow(
               horizontalAlignment = Alignment.Start,
               verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-              Text(text = key, fontSize = 12.sp, color = Color.Gray)
+              Text(text = key, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
               Text(
                 text = if (value.contains("kpl") || value.contains("%") || value.contains("m")) value else "$value kpl",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E293B)
+                color = MaterialTheme.colorScheme.onSurface
               )
             }
           }
@@ -435,14 +427,14 @@ private fun DataContent(data: List<Pair<String, String>>) {
     ) {
       rowData.forEach { (label, value) ->
         Card(
-          colors = CardDefaults.cardColors(containerColor = Color.White),
+          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
           shape = RoundedCornerShape(8.dp),
           modifier = Modifier.weight(1f)
         ) {
           Column(modifier = Modifier.padding(12.dp)) {
-            Text(label, fontSize = 11.sp, color = Color.Gray)
+            Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(4.dp))
-            Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
+            Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
           }
         }
       }

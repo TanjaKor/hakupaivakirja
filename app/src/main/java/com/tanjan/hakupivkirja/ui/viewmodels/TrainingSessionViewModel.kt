@@ -417,23 +417,35 @@ class TrainingSessionViewModel(
     sb.append("📅 Päivämäärä: $date\n")
     sb.append("🐕 Koira: ${session.dogName}\n")
     sb.append("📏 Radan pituus: ${session.trackLength}\n")
-    sb.append("➡️ Aloitus: ${if (state.startFromLeft) "Vasen" else "Oikea"}\n")
+    sb.append("➡️ Radan aloitus: ${if (state.startFromLeft) "Vasen" else "Oikea"}\n")
     sb.append("🔢 Pistot: ${state.selectedPistot} kpl\n")
     sb.append("\n--- Pistot ---\n")
-    
-    for (i in 1..state.selectedPistot) {
+
+    val maxPisto = state.selectedPistot-1
+    for (i in 0..maxPisto) {
       val pisto = state.pistoStates[i]
-      sb.append("\n📍 Pisto $i: ")
+      sb.append("\n📍 Pisto ${i+1}: ")
       if (pisto == null) {
-        sb.append("Oletus\n")
+        sb.append("Pistoa ei löydy\n")
       } else {
-        sb.append("${pisto.currentMode}\n")
+        if (pisto.currentMode == PistoMode.TYHJA) {
+          sb.append("Tyhjä\n")
+          continue
+        }
+        if (pisto.currentMode == PistoMode.DEFAULT) {
+          sb.append("Ei täytetty\n")
+          continue
+        }
         if (pisto.currentMode == PistoMode.MM) {
+          if (!pisto.avut.isNullOrBlank()) sb.append("\n  - Avut: ${pisto.avut}\n")
           if (!pisto.haukut.isNullOrBlank()) sb.append("  - Haukut: ${pisto.haukut}\n")
-          if (!pisto.avut.isNullOrBlank()) sb.append("  - Avut: ${pisto.avut}\n")
+          if (!pisto.irtorullanSijainti.isNullOrBlank()) sb.append(" - Irtorullan sijainti: ${pisto.irtorullanSijainti}\n")
           if (!pisto.palkka.isNullOrBlank()) sb.append("  - Palkka: ${pisto.palkka}\n")
-          if (pisto.isClosed) sb.append("  - Suljettu piilo\n")
-          if (pisto.control) sb.append("  - Hallinta\n")
+          if (pisto.kiintoRulla == true) sb.append("  - Kiintorulla\n")
+          if (pisto.suoraPalkka) sb.append("  - Suorapalkka\n")
+          if (pisto.isClosed) sb.append("  - Umpipiilo\n")
+          if (pisto.control) sb.append("  - Koehallinta\n")
+          if (pisto.comeToMiddle) sb.append("  - Sisääntulo\n")
         }
       }
     }

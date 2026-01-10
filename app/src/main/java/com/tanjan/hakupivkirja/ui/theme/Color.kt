@@ -1,11 +1,14 @@
 package com.tanjan.hakupivkirja.ui.theme
 import androidx.compose.ui.graphics.Color
 
+// ============================================================================
+// LIGHT MODE (Original Greenish)
+// ============================================================================
 val primaryLight = Color(0xFF006C10)
 val onPrimaryLight = Color(0xFFFFFFFF)
-val primaryContainerLight = Color(0xFF008817)
-val onPrimaryContainerLight = Color(0xFFF8FFF0)
-val secondaryLight = Color(0x5B3BA264)
+val primaryContainerLight = Color(0xFF388E3C) // Lighter green for nice gradient
+val onPrimaryContainerLight = Color(0xFFFFFFFF)
+val secondaryLight = Color(0xFF3BA264)
 val onSecondaryLight = Color(0xFFFFFFFF)
 val secondaryContainerLight = Color(0xFFECF5EE)
 val onSecondaryContainerLight = Color(0xFF68706B)
@@ -37,6 +40,53 @@ val surfaceContainerLight = Color(0xFFF0EDEC)
 val surfaceContainerHighLight = Color(0xFFEBE7E6)
 val surfaceContainerHighestLight = Color(0xFFE5E2E1)
 
+// ============================================================================
+// MODERN DARK MODE (Principles applied)
+// ============================================================================
+val backgroundDark = Color(0xFF121212) 
+val onBackgroundDark = Color(0xFFE0E0E0) 
+
+val surfaceDark = Color(0xFF1E1E1E) 
+val onSurfaceDark = Color(0xFFE0E0E0)
+val surfaceVariantDark = Color(0xFF2C2C2C)
+val onSurfaceVariantDark = Color(0xFFBDBDBD)
+
+val primaryDark = Color(0xFF2E7D32) // Muted Dark Green
+val onPrimaryDark = Color(0xFFE0E0E0)
+val primaryContainerDark = Color(0xFF1B3320) // Even Darker for gradient
+val onPrimaryContainerDark = Color(0xFFB9F6BC)
+
+val secondaryDark = Color(0xFF4E6352) // Desaturated sage
+val onSecondaryDark = Color(0xFFE0E0E0)
+val secondaryContainerDark = Color(0xFF384437)
+val onSecondaryContainerDark = Color(0xFFD1DBC1)
+
+val tertiaryDark = Color(0xFF546E7A)
+val onTertiaryDark = Color(0xFFE0E0E0)
+val tertiaryContainerDark = Color(0xFF37474F)
+val onTertiaryContainerDark = Color(0xFFCFD8DC)
+
+val errorDark = Color(0xFFC62828)
+val onErrorDark = Color(0xFFE0E0E0)
+val errorContainerDark = Color(0xFF93000A)
+val onErrorContainerDark = Color(0xFFFFDAD6)
+
+val outlineDark = Color(0xFF757575)
+val outlineVariantDark = Color(0xFF424242)
+val scrimDark = Color(0xFF000000)
+val inverseSurfaceDark = Color(0xFFE0E0E0)
+val inverseOnSurfaceDark = Color(0xFF121212)
+val inversePrimaryDark = Color(0xFF006C10)
+
+val surfaceDimDark = Color(0xFF121212)
+val surfaceBrightDark = Color(0xFF383838)
+val surfaceContainerLowestDark = Color(0xFF0F0F0F)
+val surfaceContainerLowDark = Color(0xFF1A1A1A)
+val surfaceContainerDark = Color(0xFF212121)
+val surfaceContainerHighDark = Color(0xFF2B2B2B)
+val surfaceContainerHighestDark = Color(0xFF333333)
+
+// Contrast variants (keeping structure)
 val primaryLightMediumContrast = Color(0xFF004006)
 val onPrimaryLightMediumContrast = Color(0xFFFFFFFF)
 val primaryContainerLightMediumContrast = Color(0xFF007F15)
@@ -109,47 +159,11 @@ val surfaceContainerLightHighContrast = Color(0xFFE5E2E1)
 val surfaceContainerHighLightHighContrast = Color(0xFFD7D4D3)
 val surfaceContainerHighestLightHighContrast = Color(0xFFC9C6C5)
 
-val primaryDark = Color(0xFF459F41)
-val onPrimaryDark = Color(0xFF003A05)
-val primaryContainerDark = Color(0xFF258F2E)
-val onPrimaryContainerDark = Color(0xFF002C03)
-val secondaryDark = Color(0xFFFFFFFF)
-val onSecondaryDark = Color(0xFF88948E)
-val secondaryContainerDark = Color(0xFF0A3D16)
-val onSecondaryContainerDark = Color(0xFF9BC9AC)
-val tertiaryDark = Color(0xFFC5C7C3)
-val onTertiaryDark = Color(0xFF2E312E)
-val tertiaryContainerDark = Color(0xFF494C49)
-val onTertiaryContainerDark = Color(0xFFBABCB8)
-val errorDark = Color(0xFFFFB4AB)
-val onErrorDark = Color(0xFF690005)
-val errorContainerDark = Color(0xFF93000A)
-val onErrorContainerDark = Color(0xFFFFDAD6)
-val backgroundDark = Color(0xFF0E150C)
-val onBackgroundDark = Color(0xFFDDE5D6)
-val surfaceDark = Color(0xFF131313)
-val onSurfaceDark = Color(0xFFE5E2E1)
-val surfaceVariantDark = Color(0xFF444748)
-val onSurfaceVariantDark = Color(0xFFC4C7C7)
-val outlineDark = Color(0xFF8E9192)
-val outlineVariantDark = Color(0xFF444748)
-val scrimDark = Color(0xFF000000)
-val inverseSurfaceDark = Color(0xFFE5E2E1)
-val inverseOnSurfaceDark = Color(0xFF313030)
-val inversePrimaryDark = Color(0xFF006E11)
-val surfaceDimDark = Color(0xFF131313)
-val surfaceBrightDark = Color(0xFF3A3939)
-val surfaceContainerLowestDark = Color(0xFF0E0E0E)
-val surfaceContainerLowDark = Color(0xFF1C1B1B)
-val surfaceContainerDark = Color(0xFF201F1F)
-val surfaceContainerHighDark = Color(0xFF2A2A29)
-val surfaceContainerHighestDark = Color(0xFF353534)
-
 val primaryDarkMediumContrast = Color(0xFF77F76E)
 val onPrimaryDarkMediumContrast = Color(0xFF002D03)
 val primaryContainerDarkMediumContrast = Color(0xFF1CA727)
 val onPrimaryContainerDarkMediumContrast = Color(0xFF000000)
-val secondaryDarkMediumContrast = Color(0xFFFFFFFF)
+val secondaryDarkMediumContrast = Color(0xFFDBE5DE)
 val onSecondaryDarkMediumContrast = Color(0xFF2A322E)
 val secondaryContainerDarkMediumContrast = Color(0xFFDCE5DE)
 val onSecondaryContainerDarkMediumContrast = Color(0xFF414A45)
@@ -216,10 +230,5 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF201F1F)
 val surfaceContainerDarkHighContrast = Color(0xFF313030)
 val surfaceContainerHighDarkHighContrast = Color(0xFF3C3B3B)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF474646)
-
-
-
-
-
-
-
+val surfaceBrightHighContrast = Color(0xFFFCF9F7) 
+val onTertiaryContainerHighContrast = Color(0xFFFFFFFF)

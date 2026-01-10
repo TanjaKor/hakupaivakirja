@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,6 +42,7 @@ fun Valintarivi(
 ) {
     val uiState by trainingSessionViewModel.uiState.collectAsState()
     var showSaveTraining by remember { mutableStateOf(false) }
+    var showResetWarning by remember { mutableStateOf(false) }
 
     if (showSaveTraining) {
         SaveTrainingSession(
@@ -49,15 +51,38 @@ fun Valintarivi(
         )
     }
 
+    if (showResetWarning) {
+        AlertDialog(
+            onDismissRequest = { showResetWarning = false },
+            title = { Text("Huomio") },
+            text = { Text("Avaamalla uuden radan menetät tallentamattomat tietosi.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        trainingSessionViewModel.initializeEmptyTrainingSession()
+                        showResetWarning = false
+                    }
+                ) {
+                    Text("Jatka", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetWarning = false }) {
+                    Text("Peruuta")
+                }
+            }
+        )
+    }
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 2.dp,
-        color = Color.White
+        // KORJAUS: Käytetään teeman väriä valkoisen sijaan
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 4.dp),
-            // Negatiivinen väli vetää rivejä ja otsikkoa lähemmäs toisiaan
-            verticalArrangement = Arrangement.spacedBy((-12).dp)
+            verticalArrangement = Arrangement.spacedBy((1).dp)
         ) {
             Text(
                 text = "Treenin tiedot",
@@ -89,7 +114,9 @@ fun Valintarivi(
                         }
                     )
                 }
+                
                 PistojenMaaraDropdown(
+                    selectedPistot = uiState.selectedPistot,
                     maxPistot = uiState.maxPistot,
                     onSelectedPistotChange = { count ->
                         trainingSessionViewModel.updateSelectedPistot(count)
@@ -97,9 +124,9 @@ fun Valintarivi(
                 )
 
                 Column(
-                  modifier = Modifier.width(52.dp),
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.Center
+                    modifier = Modifier.width(52.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy((-10).dp, Alignment.CenterVertically)
                 ) {
                     IconButton(
                         onClick = { showSaveTraining = true },
@@ -112,7 +139,7 @@ fun Valintarivi(
                         )
                     }
                     IconButton(
-                        onClick = {trainingSessionViewModel.initializeEmptyTrainingSession()},
+                        onClick = { showResetWarning = true },
                         modifier = Modifier.size(40.dp)
                     ) {
                         Icon(
@@ -125,7 +152,7 @@ fun Valintarivi(
             }
             
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
@@ -137,23 +164,29 @@ fun Valintarivi(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Done
                     ),
-                    label = { Text("Suunnitelman nimi", fontSize = 12.sp) },
+                    label = { Text("Treenisuunnitelma lyhyesti", fontSize = 12.sp) },
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 8.dp)
                 )
 
                 Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier.width(52.dp).padding(top=2.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy((-8).dp, Alignment.CenterVertically)
                 ){
-                    Text("Käännä", fontSize = 11.sp, color = Color.Gray)
+                    // KORJAUS: Käytetään teeman tekstiväriä
+                    Text(
+                        text = "Käännä", 
+                        fontSize = 11.sp, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Switch(
                         checked = uiState.startFromLeft,
                         onCheckedChange = { newValue ->
                             trainingSessionViewModel.setStartFromLeft(newValue)
                         },
-                        modifier = Modifier.padding(top = 0.dp)
+                        modifier = Modifier.padding(0.dp)
                     )
                 }
             }

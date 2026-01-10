@@ -19,26 +19,24 @@ import androidx.compose.material.icons.sharp.West
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tanjan.hakupivkirja.model.PistoMode
 import com.tanjan.hakupivkirja.model.PistoUiState
 import com.tanjan.hakupivkirja.model.TrainingSessionUiState
-import com.tanjan.hakupivkirja.ui.theme.primaryDark
-import com.tanjan.hakupivkirja.ui.theme.primaryLight
 import kotlin.math.ceil
 
 /**
  * Extension function for LazyColumn to render the training track rows.
- * Updated with white Cards matching the modern Overview styling.
+ * Updated with theme-aware Cards matching modern styling.
  */
 fun LazyListScope.UusiRataItems(
     uiState: TrainingSessionUiState,
@@ -74,7 +72,7 @@ fun LazyListScope.UusiRataItems(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp)
@@ -152,23 +150,26 @@ fun PistoCard(
         modifier = modifier.height(280.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White,
-            contentColor = Color(0xFF1E293B)
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.fillMaxHeight()) {
-            // Header styling based on mode
+            // Header styling based on mode using theme colors
             val headerBrush = when (pistoState.currentMode) {
-                PistoMode.MM -> Brush.horizontalGradient(listOf(primaryLight, primaryDark))
-                PistoMode.DEFAULT -> Brush.horizontalGradient(listOf(Color(0xFFF1F5F9), Color(0xFFE2E8F0)))
-                PistoMode.TYHJA -> Brush.horizontalGradient(listOf(Color.White, Color.White))
-            }
-
-            val headerTextColor = when (pistoState.currentMode) {
-                PistoMode.MM -> Color.White
-                PistoMode.DEFAULT -> Color(0xFF64748B)
-                PistoMode.TYHJA -> Color.LightGray
+                PistoMode.MM -> Brush.horizontalGradient(listOf(
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.primaryContainer
+                ))
+                PistoMode.DEFAULT -> Brush.horizontalGradient(listOf(
+                    MaterialTheme.colorScheme.surfaceVariant,
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                ))
+                PistoMode.TYHJA -> Brush.horizontalGradient(listOf(
+                    MaterialTheme.colorScheme.surface,
+                    MaterialTheme.colorScheme.surface
+                ))
             }
 
             Row(
@@ -183,13 +184,21 @@ fun PistoCard(
                     text = pistoNumber.toString(),
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = headerTextColor
+                    color = when (pistoState.currentMode) {
+                        PistoMode.MM -> MaterialTheme.colorScheme.onPrimary
+                        PistoMode.DEFAULT -> MaterialTheme.colorScheme.onSurfaceVariant
+                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    }
                 )
                 if (pistoState.currentMode != PistoMode.DEFAULT) {
                     Icon(
                         Icons.Sharp.West,
                         contentDescription = "takaisin",
-                        tint = if (pistoState.currentMode == PistoMode.MM) Color.White.copy(alpha = 0.8f) else Color.LightGray,
+                        // KORJAUS: Nuoli on eri väriä kuin numero
+                        tint = when (pistoState.currentMode) {
+                            PistoMode.MM -> MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                         modifier = Modifier
                             .size(18.dp)
                             .clickable { onPistoModeChange(pistoIndex, PistoMode.DEFAULT) }
@@ -197,7 +206,7 @@ fun PistoCard(
                 }
             }
 
-            // Content remains white
+            // Content area
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -222,7 +231,7 @@ fun PistoCard(
                     }
                     PistoMode.TYHJA -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Tyhjä", color = Color.LightGray, fontWeight = FontWeight.Medium)
+                            Text("Tyhjä", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f), fontWeight = FontWeight.Medium)
                         }
                     }
                     PistoMode.DEFAULT -> {
@@ -232,10 +241,10 @@ fun PistoCard(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             TextButton(onClick = { onPistoModeChange(pistoIndex, PistoMode.TYHJA) }) {
-                                Text("Tyhjä", color = primaryLight)
+                                Text("Tyhjä", color = MaterialTheme.colorScheme.primary)
                             }
                             TextButton(onClick = { onPistoModeChange(pistoIndex, PistoMode.MM) }) {
-                                Text("MM", color = primaryLight)
+                                Text("MM", color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
