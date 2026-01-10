@@ -7,31 +7,38 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.sharp.West
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.tanjan.hakupivkirja.model.PistoMode
 import com.tanjan.hakupivkirja.model.PistoUiState
 import com.tanjan.hakupivkirja.model.TrainingSessionUiState
+import com.tanjan.hakupivkirja.ui.theme.primaryDark
+import com.tanjan.hakupivkirja.ui.theme.primaryLight
 import kotlin.math.ceil
 
 /**
  * Extension function for LazyColumn to render the training track rows.
- * This approach works better with Android's "Capture more" scrolling screenshot feature.
+ * Updated with white Cards matching the modern Overview styling.
  */
 fun LazyListScope.UusiRataItems(
     uiState: TrainingSessionUiState,
@@ -49,22 +56,8 @@ fun LazyListScope.UusiRataItems(
     val selectedPistot = uiState.selectedPistot
     val rowCount = ceil(selectedPistot / 2.0).toInt()
 
-    // Loop through the rows. We use indices to ensure each row is a separate item.
     items(rowCount) { rowIndex ->
-        
-        // This helper function now returns the correct solid color based on the mode.
-        @Composable
-        fun getBackgroundBrush(mode: PistoMode): Brush {
-            val color = when (mode) {
-                PistoMode.MM -> MaterialTheme.colorScheme.secondaryContainer
-                else -> MaterialTheme.colorScheme.onTertiaryContainer
-            }
-            return Brush.horizontalGradient(colors = listOf(color, color))
-        }
-
-        // Invert the index for calculation to ensure bottom-up numbering
         val invertedRowIndex = (rowCount - 1) - rowIndex
-
         val leftPistoNumber: Int
         val rightPistoNumber: Int
 
@@ -81,297 +74,172 @@ fun LazyListScope.UusiRataItems(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(290.dp)
-                .padding(vertical = 4.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
+            // LEFT PISTO
             if (leftPistoIndex in 0 until selectedPistot) {
-                val leftPistoState = uiState.pistoStates[leftPistoIndex] ?: PistoUiState(
+                PistoCard(
+                    pistoNumber = leftPistoNumber,
                     pistoIndex = leftPistoIndex,
-                    selectedPistot = selectedPistot
+                    uiState = uiState,
+                    onPistoModeChange = onPistoModeChange,
+                    onHaukutChange = { haukut -> onHaukutChange(leftPistoIndex, haukut) },
+                    onAvutChange = { avut -> onAvutChange(leftPistoIndex, avut) },
+                    onPalkkaChange = { palkka -> onPalkkaChange(leftPistoIndex, palkka) },
+                    onComeToMiddleChange = { comeToMiddle -> onComeToMiddleChange(leftPistoIndex, comeToMiddle)},
+                    onIsClosedChange = { isClosed -> onIsClosedChange(leftPistoIndex, isClosed)},
+                    onSuoraPalkkaChange = { suoraPalkka -> onSuoraPalkkaChange(leftPistoIndex, suoraPalkka)},
+                    onKiintoRullaChange = { kiintoRulla -> onKiintoRullaChange(leftPistoIndex, kiintoRulla)},
+                    onIrtorullanSijaintiChange = { irtorullanSijainti -> onIrtorullanSijaintiChange(leftPistoIndex, irtorullanSijainti)},
+                    onControlChange = { control -> onControlChange(leftPistoIndex, control)},
+                    modifier = Modifier.weight(1f)
                 )
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .padding(horizontal = 5.dp)
-                        .background(getBackgroundBrush(leftPistoState.currentMode)),
-                    horizontalAlignment = Alignment.End,
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp)
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(leftPistoNumber.toString(), color = MaterialTheme.colorScheme.onSecondaryContainer)
-                        if (leftPistoState.currentMode == PistoMode.MM || leftPistoState.currentMode == PistoMode.TYHJA) {
-                            Icon(
-                                Icons.Sharp.West,
-                                contentDescription = "takasin",
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier
-                                    .clickable { onPistoModeChange(leftPistoIndex, PistoMode.DEFAULT) }
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp)
-                            .padding(bottom = 8.dp),
-                        horizontalArrangement = if (leftPistoState.currentMode == PistoMode.TYHJA)
-                            Arrangement.Center
-                        else Arrangement.Start
-                    ) {
-                        when (leftPistoState.currentMode) {
-                            PistoMode.MM -> {
-                                Pisto(
-                                    pistoUiState = leftPistoState,
-                                    sessionAlarmType = uiState.currentTrainingSession?.alarmType,
-                                    onHaukutChange = { haukut -> onHaukutChange(leftPistoIndex, haukut) },
-                                    onAvutChange = { avut -> onAvutChange(leftPistoIndex, avut) },
-                                    onPalkkaChange = { palkka -> onPalkkaChange(leftPistoIndex, palkka) },
-                                    onComeToMiddleChange = { comeToMiddle -> onComeToMiddleChange(leftPistoIndex, comeToMiddle)},
-                                    onIsClosedChange = { isClosed -> onIsClosedChange(leftPistoIndex, isClosed)},
-                                    onSuoraPalkkaChange = { suoraPalkka -> onSuoraPalkkaChange(leftPistoIndex, suoraPalkka)},
-                                    onKiintoRullaChange = { kiintoRulla -> onKiintoRullaChange(leftPistoIndex, kiintoRulla)},
-                                    onIrtorullanSijaintiChange = { irtorullanSijainti -> onIrtorullanSijaintiChange(leftPistoIndex, irtorullanSijainti)},
-                                    onControlChange = { control -> onControlChange(leftPistoIndex, control)}
-                                )
-                            }
-                            PistoMode.TYHJA -> {
-                                Row(modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.onTertiaryContainer)
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
-                                }
-                            }
-                            PistoMode.DEFAULT -> {
-                                Row(modifier = Modifier
-                                    .background(MaterialTheme.colorScheme.onTertiaryContainer)
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                                    TextButton(onClick = {
-                                        onPistoModeChange(leftPistoIndex, PistoMode.TYHJA)
-                                    }) {
-                                        Text(text = "Tyhjä")
-                                    }
-                                    TextButton(onClick = {
-                                        onPistoModeChange(leftPistoIndex, PistoMode.MM)
-                                    }) {
-                                        Text(text = "MM")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             } else {
-                Box(modifier = Modifier.weight(1f).height(0.dp))
+                Box(modifier = Modifier.weight(1f))
             }
 
+            // RIGHT PISTO
             if (rightPistoIndex in 0 until selectedPistot) {
-                val rightPistoState = uiState.pistoStates[rightPistoIndex] ?: PistoUiState(
+                PistoCard(
+                    pistoNumber = rightPistoNumber,
                     pistoIndex = rightPistoIndex,
-                    selectedPistot = selectedPistot
+                    uiState = uiState,
+                    onPistoModeChange = onPistoModeChange,
+                    onHaukutChange = { haukut -> onHaukutChange(rightPistoIndex, haukut) },
+                    onAvutChange = { avut -> onAvutChange(rightPistoIndex, avut) },
+                    onPalkkaChange = { palkka -> onPalkkaChange(rightPistoIndex, palkka) },
+                    onComeToMiddleChange = { comeToMiddle -> onComeToMiddleChange(rightPistoIndex, comeToMiddle)},
+                    onIsClosedChange = { isClosed -> onIsClosedChange(rightPistoIndex, isClosed)},
+                    onSuoraPalkkaChange = { suoraPalkka -> onSuoraPalkkaChange(rightPistoIndex, suoraPalkka)},
+                    onKiintoRullaChange = { kiintoRulla -> onKiintoRullaChange(rightPistoIndex, kiintoRulla)},
+                    onIrtorullanSijaintiChange = { irtorullanSijainti -> onIrtorullanSijaintiChange(rightPistoIndex, irtorullanSijainti)},
+                    onControlChange = { control -> onControlChange(rightPistoIndex, control)},
+                    modifier = Modifier.weight(1f)
                 )
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .padding(horizontal = 5.dp)
-                        .background(getBackgroundBrush(rightPistoState.currentMode)),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp)
-                            .padding(top = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(rightPistoNumber.toString(), color = MaterialTheme.colorScheme.onSecondaryContainer)
-                        if (rightPistoState.currentMode == PistoMode.MM || rightPistoState.currentMode == PistoMode.TYHJA) {
-                            Icon(
-                                Icons.Sharp.West,
-                                contentDescription = "takasin",
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .clickable { onPistoModeChange(rightPistoIndex, PistoMode.DEFAULT) }
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp)
-                            .padding(bottom = 8.dp),
-                        horizontalArrangement = if (rightPistoState.currentMode == PistoMode.TYHJA)
-                            Arrangement.Center
-                        else Arrangement.End
-                    ) {
-                        when (rightPistoState.currentMode) {
-                            PistoMode.MM -> {
-                                Pisto(
-                                    pistoUiState = rightPistoState,
-                                    sessionAlarmType = uiState.currentTrainingSession?.alarmType,
-                                    onHaukutChange = { haukut -> onHaukutChange(rightPistoIndex, haukut) },
-                                    onAvutChange = { avut -> onAvutChange(rightPistoIndex, avut) },
-                                    onPalkkaChange = { palkka -> onPalkkaChange(rightPistoIndex, palkka) },
-                                    onComeToMiddleChange = { comeToMiddle -> onComeToMiddleChange(rightPistoIndex, comeToMiddle)},
-                                    onIsClosedChange = { isClosed -> onIsClosedChange(rightPistoIndex, isClosed)},
-                                    onSuoraPalkkaChange = { suoraPalkka -> onSuoraPalkkaChange(rightPistoIndex, suoraPalkka)},
-                                    onKiintoRullaChange = { kiintoRulla -> onKiintoRullaChange(rightPistoIndex, kiintoRulla)},
-                                    onIrtorullanSijaintiChange = { irtorullanSijainti -> onIrtorullanSijaintiChange(rightPistoIndex, irtorullanSijainti)},
-                                    onControlChange = { control -> onControlChange(rightPistoIndex, control)}
-                                )
-                            }
-                            PistoMode.TYHJA -> {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .fillMaxHeight(),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
-                                }
-                            }
-                            PistoMode.DEFAULT -> {
-                                Row(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                                    TextButton(onClick = {
-                                        onPistoModeChange(rightPistoIndex, PistoMode.TYHJA)
-                                    }) {
-                                        Text(text = "Tyhjä")
-                                    }
-                                    TextButton(onClick = {
-                                        onPistoModeChange(rightPistoIndex, PistoMode.MM)
-                                    }) {
-                                        Text(text = "MM")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             } else {
-                Box(modifier = Modifier.weight(1f).height(0.dp))
+                Box(modifier = Modifier.weight(1f))
             }
         }
     }
 }
 
-/**
- * Original UusiRata component, now implemented using a Column for backwards compatibility 
- * or internal layout.
- */
 @Composable
-fun UusiRata(
+fun PistoCard(
+    pistoNumber: Int,
+    pistoIndex: Int,
     uiState: TrainingSessionUiState,
     onPistoModeChange: (Int, PistoMode) -> Unit,
-    onHaukutChange: (Int, String) -> Unit,
-    onAvutChange: (Int, String) -> Unit,
-    onPalkkaChange: (Int, String) -> Unit,
-    onComeToMiddleChange: (Int, Boolean) -> Unit,
-    onIsClosedChange: (Int, Boolean) -> Unit,
-    onSuoraPalkkaChange: (Int, Boolean) -> Unit,
-    onKiintoRullaChange: (Int, Boolean) -> Unit,
-    onIrtorullanSijaintiChange: (Int, String) -> Unit,
-    onControlChange: (Int, Boolean) -> Unit
+    onHaukutChange: (String) -> Unit,
+    onAvutChange: (String) -> Unit,
+    onPalkkaChange: (String) -> Unit,
+    onComeToMiddleChange: (Boolean) -> Unit,
+    onIsClosedChange: (Boolean) -> Unit,
+    onSuoraPalkkaChange: (Boolean) -> Unit,
+    onKiintoRullaChange: (Boolean) -> Unit,
+    onIrtorullanSijaintiChange: (String) -> Unit,
+    onControlChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+    val pistoState = uiState.pistoStates[pistoIndex] ?: PistoUiState(
+        pistoIndex = pistoIndex,
+        selectedPistot = uiState.selectedPistot
+    )
+
+    Card(
+        modifier = modifier.height(280.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White,
+            contentColor = Color(0xFF1E293B)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        // We reuse the logic by calling a manual loop here if needed, 
-        // but for HomeScreen we'll use the UusiRataItems version.
-        val selectedPistot = uiState.selectedPistot
-        val rowCount = ceil(selectedPistot / 2.0).toInt()
-
-        for (rowIndex in 0 until rowCount) {
-            // Helper function logic duplicated here for the legacy component
-            @Composable
-            fun getBackgroundBrush(mode: PistoMode): Brush {
-                val color = when (mode) {
-                    PistoMode.MM -> MaterialTheme.colorScheme.secondaryContainer
-                    else -> MaterialTheme.colorScheme.onTertiaryContainer
-                }
-                return Brush.horizontalGradient(colors = listOf(color, color))
+        Column(modifier = Modifier.fillMaxHeight()) {
+            // Header styling based on mode
+            val headerBrush = when (pistoState.currentMode) {
+                PistoMode.MM -> Brush.horizontalGradient(listOf(primaryLight, primaryDark))
+                PistoMode.DEFAULT -> Brush.horizontalGradient(listOf(Color(0xFFF1F5F9), Color(0xFFE2E8F0)))
+                PistoMode.TYHJA -> Brush.horizontalGradient(listOf(Color.White, Color.White))
             }
 
-            val invertedRowIndex = (rowCount - 1) - rowIndex
-            val leftPistoNumber: Int
-            val rightPistoNumber: Int
-
-            if (uiState.startFromLeft) {
-                leftPistoNumber = invertedRowIndex * 2 + 1
-                rightPistoNumber = invertedRowIndex * 2 + 2
-            } else {
-                leftPistoNumber = invertedRowIndex * 2 + 2
-                rightPistoNumber = invertedRowIndex * 2 + 1
+            val headerTextColor = when (pistoState.currentMode) {
+                PistoMode.MM -> Color.White
+                PistoMode.DEFAULT -> Color(0xFF64748B)
+                PistoMode.TYHJA -> Color.LightGray
             }
-
-            val leftPistoIndex = leftPistoNumber - 1
-            val rightPistoIndex = rightPistoNumber - 1
 
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(headerBrush)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth().height(220.dp)
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (leftPistoIndex in 0 until selectedPistot) {
-                    val leftPistoState = uiState.pistoStates[leftPistoIndex] ?: PistoUiState(pistoIndex = leftPistoIndex, selectedPistot = selectedPistot)
-                    Column(
-                        modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).padding(horizontal = 5.dp).background(getBackgroundBrush(leftPistoState.currentMode)),
-                        horizontalAlignment = Alignment.End,
-                    ) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(leftPistoNumber.toString(), color = MaterialTheme.colorScheme.onSecondaryContainer)
-                            if (leftPistoState.currentMode == PistoMode.MM || leftPistoState.currentMode == PistoMode.TYHJA) {
-                                Icon(Icons.Sharp.West, contentDescription = "takasin", tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.clickable { onPistoModeChange(leftPistoIndex, PistoMode.DEFAULT) })
-                            }
+                Text(
+                    text = pistoNumber.toString(),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    color = headerTextColor
+                )
+                if (pistoState.currentMode != PistoMode.DEFAULT) {
+                    Icon(
+                        Icons.Sharp.West,
+                        contentDescription = "takaisin",
+                        tint = if (pistoState.currentMode == PistoMode.MM) Color.White.copy(alpha = 0.8f) else Color.LightGray,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { onPistoModeChange(pistoIndex, PistoMode.DEFAULT) }
+                    )
+                }
+            }
+
+            // Content remains white
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+            ) {
+                when (pistoState.currentMode) {
+                    PistoMode.MM -> {
+                        Pisto(
+                            pistoUiState = pistoState,
+                            sessionAlarmType = uiState.currentTrainingSession?.alarmType,
+                            onHaukutChange = onHaukutChange,
+                            onAvutChange = onAvutChange,
+                            onPalkkaChange = onPalkkaChange,
+                            onComeToMiddleChange = onComeToMiddleChange,
+                            onIsClosedChange = onIsClosedChange,
+                            onSuoraPalkkaChange = onSuoraPalkkaChange,
+                            onKiintoRullaChange = onKiintoRullaChange,
+                            onIrtorullanSijaintiChange = onIrtorullanSijaintiChange,
+                            onControlChange = onControlChange
+                        )
+                    }
+                    PistoMode.TYHJA -> {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Tyhjä", color = Color.LightGray, fontWeight = FontWeight.Medium)
                         }
-                        Row(modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 10.dp).padding(bottom = 8.dp), horizontalArrangement = if (leftPistoState.currentMode == PistoMode.TYHJA) Arrangement.Center else Arrangement.Start) {
-                            when (leftPistoState.currentMode) {
-                                PistoMode.MM -> Pisto(pistoUiState = leftPistoState, sessionAlarmType = uiState.currentTrainingSession?.alarmType, onHaukutChange = { haukut -> onHaukutChange(leftPistoIndex, haukut) }, onAvutChange = { avut -> onAvutChange(leftPistoIndex, avut) }, onPalkkaChange = { palkka -> onPalkkaChange(leftPistoIndex, palkka) }, onComeToMiddleChange = { comeToMiddle -> onComeToMiddleChange(leftPistoIndex, comeToMiddle)}, onIsClosedChange = { isClosed -> onIsClosedChange(leftPistoIndex, isClosed)}, onSuoraPalkkaChange = { suoraPalkka -> onSuoraPalkkaChange(leftPistoIndex, suoraPalkka)}, onKiintoRullaChange = { kiintoRulla -> onKiintoRullaChange(leftPistoIndex, kiintoRulla)}, onIrtorullanSijaintiChange = { irtorullanSijainti -> onIrtorullanSijaintiChange(leftPistoIndex, irtorullanSijainti)}, onControlChange = { control -> onControlChange(leftPistoIndex, control)})
-                                PistoMode.TYHJA -> Row(modifier = Modifier.background(MaterialTheme.colorScheme.onTertiaryContainer).fillMaxWidth().fillMaxHeight(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) { Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSecondaryContainer) }
-                                PistoMode.DEFAULT -> Row(modifier = Modifier.background(MaterialTheme.colorScheme.onTertiaryContainer).fillMaxWidth().fillMaxHeight(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) { TextButton(onClick = { onPistoModeChange(leftPistoIndex, PistoMode.TYHJA) }) { Text(text = "Tyhjä") }; TextButton(onClick = { onPistoModeChange(leftPistoIndex, PistoMode.MM) }) { Text(text = "MM") } }
+                    }
+                    PistoMode.DEFAULT -> {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            TextButton(onClick = { onPistoModeChange(pistoIndex, PistoMode.TYHJA) }) {
+                                Text("Tyhjä", color = primaryLight)
+                            }
+                            TextButton(onClick = { onPistoModeChange(pistoIndex, PistoMode.MM) }) {
+                                Text("MM", color = primaryLight)
                             }
                         }
                     }
-                } else { Box(modifier = Modifier.weight(1f).height(0.dp)) }
-                
-                if (rightPistoIndex in 0 until selectedPistot) {
-                    val rightPistoState = uiState.pistoStates[rightPistoIndex] ?: PistoUiState(pistoIndex = rightPistoIndex, selectedPistot = selectedPistot)
-                    Column(modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).padding(horizontal = 5.dp).background(getBackgroundBrush(rightPistoState.currentMode)), horizontalAlignment = Alignment.End) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(rightPistoNumber.toString(), color = MaterialTheme.colorScheme.onSecondaryContainer)
-                            if (rightPistoState.currentMode == PistoMode.MM || rightPistoState.currentMode == PistoMode.TYHJA) {
-                                Icon(Icons.Sharp.West, contentDescription = "takasin", tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.padding(horizontal = 8.dp).clickable { onPistoModeChange(rightPistoIndex, PistoMode.DEFAULT) })
-                            }
-                        }
-                        Row(modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 10.dp).padding(bottom = 8.dp), horizontalArrangement = if (rightPistoState.currentMode == PistoMode.TYHJA) Arrangement.Center else Arrangement.End) {
-                            when (rightPistoState.currentMode) {
-                                PistoMode.MM -> Pisto(pistoUiState = rightPistoState, sessionAlarmType = uiState.currentTrainingSession?.alarmType, onHaukutChange = { haukut -> onHaukutChange(rightPistoIndex, haukut) }, onAvutChange = { avut -> onAvutChange(rightPistoIndex, avut) }, onPalkkaChange = { palkka -> onPalkkaChange(rightPistoIndex, palkka) }, onComeToMiddleChange = { comeToMiddle -> onComeToMiddleChange(rightPistoIndex, comeToMiddle)}, onIsClosedChange = { isClosed -> onIsClosedChange(rightPistoIndex, isClosed)}, onSuoraPalkkaChange = { suoraPalkka -> onSuoraPalkkaChange(rightPistoIndex, suoraPalkka)}, onKiintoRullaChange = { kiintoRulla -> onKiintoRullaChange(rightPistoIndex, kiintoRulla)}, onIrtorullanSijaintiChange = { irtorullanSijainti -> onIrtorullanSijaintiChange(rightPistoIndex, irtorullanSijainti)}, onControlChange = { control -> onControlChange(rightPistoIndex, control)})
-                                PistoMode.TYHJA -> Row(modifier = Modifier.fillMaxWidth().fillMaxHeight(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) { Text(text = "Tyhjä", modifier = Modifier.padding(start = 10.dp), color = MaterialTheme.colorScheme.onSecondaryContainer) }
-                                PistoMode.DEFAULT -> Row(modifier = Modifier.fillMaxWidth().fillMaxHeight(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) { TextButton(onClick = { onPistoModeChange(rightPistoIndex, PistoMode.TYHJA) }) { Text(text = "Tyhjä") }; TextButton(onClick = { onPistoModeChange(rightPistoIndex, PistoMode.MM) }) { Text(text = "MM") } }
-                            }
-                        }
-                    }
-                } else { Box(modifier = Modifier.weight(1f).height(0.dp)) }
+                }
             }
         }
     }

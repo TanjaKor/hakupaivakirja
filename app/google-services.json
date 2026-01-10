@@ -15,7 +15,26 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": GOOGLE_API
+          "current_key": "AIzaSyCrc_nISd-A0hgnU9NWUk5vZZ-6rOd_Vqs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:255000104389:android:b7bc01bb4bf19a66d08fac",
+        "android_client_info": {
+          "package_name": "com.tanjan.hakupivkirja"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrc_nISd-A0hgnU9NWUk5vZZ-6rOd_Vqs"
         }
       ],
       "services": {

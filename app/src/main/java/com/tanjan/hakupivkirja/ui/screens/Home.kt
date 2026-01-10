@@ -1,19 +1,21 @@
 package com.tanjan.hakupivkirja.ui.screens
 
+// Apukomponentti Box importtia varten
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.tanjan.hakupivkirja.ui.components.UusiRataItems
 import com.tanjan.hakupivkirja.ui.components.Valintarivi
 import com.tanjan.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,19 +30,20 @@ fun HomeScreen(
         }
     }
 
-    // Käytetään LazyColumnia, jotta Androidin "Capture more" tunnistaa rullauksen paremmin
+    // Käytetään haaleaa taustaväriä, joka korostaa valkoisia kortteja
     LazyColumn(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
     ) {
         item {
-            Valintarivi(trainingSessionViewModel = trainingSessionViewModel)
-        }
-        
-        item {
-            HorizontalDivider(thickness = 2.dp, modifier = Modifier.padding(bottom = 8.dp))
+            // Lisätään hieman ilmaa yläreunaan, mutta pidetään tiiviinä
+            Box() {
+                Valintarivi(trainingSessionViewModel = trainingSessionViewModel)
+            }
         }
 
-        // Siirretään UusiRata itemeiksi, jotta ne ovat osa samaa LazyColumnia
+        // UusiRataItems hoitaa omat välinsä ja korttityylinsä
         UusiRataItems(
             uiState = uiState,
             onPistoModeChange = { pistoIndex, mode ->
@@ -76,3 +79,5 @@ fun HomeScreen(
         )
     }
 }
+
+

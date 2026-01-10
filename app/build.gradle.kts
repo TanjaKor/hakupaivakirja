@@ -5,13 +5,12 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.ksp)
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
-//    id("com.google.gms.google-services")
+    alias(libs.plugins.google.services)
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.21"
 }
 
-// Load properties from local.properties
 val localProps = Properties()
-val localPropertiesFile = rootProject.file("local.properties") // Reference the root project's file
+val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localProps.load(localPropertiesFile.inputStream())
 }
@@ -32,11 +31,9 @@ android {
             useSupportLibrary = true
         }
 
-        // Haetaan WEATHER_API_KEY, käytetään tyhjää arvoa jos ei löydy.
         val weatherApiKey = localProps.getProperty("WEATHER_API_KEY", "")
         buildConfigField("String", "WEATHER_API_KEY", "\"$weatherApiKey\"")
 
-        // Haetaan GOOGLE_API, käytetään tyhjää arvoa jos ei löydy.
         val googleApi = localProps.getProperty("GOOGLE_API", "")
         buildConfigField("String", "GOOGLE_API", "\"$googleApi\"")
     }
@@ -68,6 +65,11 @@ android {
 }
 
 dependencies {
+    // Firebase - Pakotetaan kiinteät versiot, jotta vältytään catalog-virheiltä
+    implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+
     implementation(libs.coil.compose)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
     implementation(libs.okhttp)
@@ -96,10 +98,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation (libs.androidx.material.icons.extended)
-    // Add this line to include the foundation layout dependency
     implementation(libs.androidx.foundation.layout)
     implementation(libs.androidx.room.runtime)
-//    implementation(libs.firebase.analytics)
-//    implementation(platform(libs.firebase.bom))
     implementation(libs.androidx.navigation.compose)
 }

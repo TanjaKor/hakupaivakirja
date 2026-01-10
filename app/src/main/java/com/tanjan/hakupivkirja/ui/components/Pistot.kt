@@ -66,7 +66,7 @@ fun Pisto(
         },
         modifier = Modifier
           .weight(0.3f)
-          .widthIn(min = 60.dp, max = 90.dp)
+          .widthIn(min = 60.dp, max = 70.dp)
       )
       PalkkaDropdown(
         selectedText = pistoUiState.palkka ?: "",
@@ -74,7 +74,7 @@ fun Pisto(
           onPalkkaChange(newValue)
         },
         modifier = Modifier
-          .weight(0.3f)
+          .weight(0.7f)
           .widthIn(min = 65.dp, max = 100.dp)
       )
     }

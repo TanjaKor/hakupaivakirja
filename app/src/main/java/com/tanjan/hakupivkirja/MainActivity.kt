@@ -41,7 +41,9 @@ import com.tanjan.hakupivkirja.ui.components.AppTopBar
 import com.tanjan.hakupivkirja.ui.components.ShareTrainingDialog
 import com.tanjan.hakupivkirja.ui.screens.HistoryScreen
 import com.tanjan.hakupivkirja.ui.screens.HomeScreen
+import com.tanjan.hakupivkirja.ui.screens.LoginScreen
 import com.tanjan.hakupivkirja.ui.theme.HakupäiväkirjaTheme
+import com.tanjan.hakupivkirja.ui.viewmodels.AuthViewModel
 import com.tanjan.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
 import com.tanjan.hakupivkirja.utils.AppViewModelProvider
 import kotlinx.coroutines.launch
@@ -63,6 +65,23 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(repository: HakupivkirjaRepository) {
+  val authViewModel: AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+  val authUiState by authViewModel.uiState.collectAsState()
+
+  HakupäiväkirjaTheme {
+    // Jos käyttäjä EI ole kirjautunut, näytetään LoginScreen
+    if (authUiState.currentUser == null) {
+      LoginScreen(authViewModel = authViewModel)
+    } else {
+      // Jos käyttäjä ON kirjautunut, näytetään sovelluksen sisältö
+      MainAppContent(repository, authViewModel)
+    }
+  }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainAppContent(repository: HakupivkirjaRepository, authViewModel: AuthViewModel) {
   val navController = rememberNavController()
 
   val trainingSessionViewModel: TrainingSessionViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
@@ -82,14 +101,14 @@ fun AppNavigation(repository: HakupivkirjaRepository) {
   val backStackEntry by navController.currentBackStackEntryAsState()
   val currentRoute = backStackEntry?.destination?.route
 
-  // Tilamuuttujat jakodialogille
   var showShareDialog by remember { mutableStateOf(false) }
   var shareText by remember { mutableStateOf("") }
 
   val navigationItems = listOf(
     "home" to "Koti",
     "overall" to "Yhteenveto",
-    "share" to "Jaa suunnitelma"
+    "share" to "Jaa suunnitelma",
+    "logout" to "Kirjaudu ulos"
   )
 
   LaunchedEffect(uiState.saveSuccessMessage) {
@@ -102,73 +121,75 @@ fun AppNavigation(repository: HakupivkirjaRepository) {
     }
   }
 
-  HakupäiväkirjaTheme {
-    ModalNavigationDrawer(
-      drawerState = drawerState,
-      drawerContent = {
-        ModalDrawerSheet {
-          Spacer(Modifier.height(12.dp))
-          navigationItems.forEach { (route, label) ->
-            NavigationDrawerItem(
-              label = { Text(label) },
-              selected = route == currentRoute,
-              onClick = {
-                scope.launch { 
-                  drawerState.close() 
-                  
-                  if (route == "share") {
-                      // Haetaan teksti ja avataan dialogi
-                      shareText = trainingSessionViewModel.generateShareText()
-                      if (shareText.isNotEmpty()) {
-                          showShareDialog = true
-                      }
-                  } else {
-                      navController.navigate(route) {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                      }
+  ModalNavigationDrawer(
+    drawerState = drawerState,
+    drawerContent = {
+      ModalDrawerSheet {
+        Spacer(Modifier.height(12.dp))
+        navigationItems.forEach { (route, label) ->
+          NavigationDrawerItem(
+            label = { Text(label) },
+            selected = route == currentRoute,
+            onClick = {
+              scope.launch { 
+                drawerState.close() 
+                
+                when (route) {
+                  "share" -> {
+                    shareText = trainingSessionViewModel.generateShareText()
+                    if (shareText.isNotEmpty()) {
+                      showShareDialog = true
+                    }
+                  }
+                  "logout" -> {
+                    authViewModel.signOut()
+                  }
+                  else -> {
+                    navController.navigate(route) {
+                      popUpTo(navController.graph.startDestinationId)
+                      launchSingleTop = true
+                    }
                   }
                 }
-              },
-              modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
-            )
-          }
+              }
+            },
+            modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+          )
         }
       }
-    ) {
-      Scaffold(
-        topBar = {
-          AppTopBar(
-            trainingSessionViewModel = trainingSessionViewModel,
-            navController = navController,
-            onMenuIconClick = {
-              scope.launch { drawerState.open() }
-            })
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-      ) { innerPadding ->
-        NavHost(
+    }
+  ) {
+    Scaffold(
+      topBar = {
+        AppTopBar(
+          trainingSessionViewModel = trainingSessionViewModel,
           navController = navController,
-          startDestination = "home",
-          modifier = Modifier
-              .padding(innerPadding)
-              .background(MaterialTheme.colorScheme.surface)
-        ) {
-          composable("home") {
-            HomeScreen(trainingSessionViewModel = trainingSessionViewModel)
-          }
-          composable("overall") {
-            HistoryScreen(historyViewModel = historyViewModel)
-          }
+          onMenuIconClick = {
+            scope.launch { drawerState.open() }
+          })
+      },
+      snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+      NavHost(
+        navController = navController,
+        startDestination = "home",
+        modifier = Modifier
+            .padding(innerPadding)
+            .background(MaterialTheme.colorScheme.surface)
+      ) {
+        composable("home") {
+          HomeScreen(trainingSessionViewModel = trainingSessionViewModel)
         }
+        composable("overall") {
+          HistoryScreen(historyViewModel = historyViewModel)
+        }
+      }
 
-        // Näytetään jakodialogi, jos tila on tosi
-        if (showShareDialog) {
-            ShareTrainingDialog(
-                shareText = shareText,
-                onDismiss = { showShareDialog = false }
-            )
-        }
+      if (showShareDialog) {
+          ShareTrainingDialog(
+              shareText = shareText,
+              onDismiss = { showShareDialog = false }
+          )
       }
     }
   }
