@@ -9,13 +9,14 @@ import com.tanjan.hakupivkirja.model.dao.TrainingSessionDao
 import com.tanjan.hakupivkirja.model.dao.WeatherDao
 
 @Database(
-  entities = [PistoStateEntity::class, TrainingSession::class, Terrain::class, WeatherEntity::class],
-  version = 11,
+  entities = [PistoStateEntity::class, TrainingSession::class, Terrain::class, WeatherEntity::class, UserEntity::class],
+  version = 12,
   exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun trainingSessionDao(): TrainingSessionDao
   abstract fun terrainDao(): TerrainDao
   abstract fun weatherDao(): WeatherDao
+  abstract fun userDao(): UserDao
 
   companion object {
     @Volatile

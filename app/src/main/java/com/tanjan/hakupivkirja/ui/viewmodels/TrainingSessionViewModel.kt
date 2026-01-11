@@ -1,7 +1,5 @@
 package com.tanjan.hakupivkirja.ui.viewmodels
 
-//import com.tanjan.hakupivkirja.model.repository.WeatherRepository
-
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,8 +26,7 @@ import java.util.Date
 import java.util.Locale
 
 class TrainingSessionViewModel(
-  private val repository: HakupivkirjaRepository,
-//  private val weatherRepository: WeatherRepository
+  private val repository: HakupivkirjaRepository
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(TrainingSessionUiState())
@@ -43,18 +40,32 @@ class TrainingSessionViewModel(
 
   var errorMessage by mutableStateOf("")
     private set
-//  var weatherUiState: WeatherUiState by mutableStateOf(WeatherUiState.Loading)
-//    private set
 
-//  private val _weatherState = MutableLiveData<WeatherEntity?>()
-//  val weatherState: LiveData<WeatherEntity?> = _weatherState
+  private var defaultDogName = "Himpu"
 
   init {
     initializeEmptyTrainingSession()
+    observeUserProfile()
   }
 
-  // Save/update training session (works for both new and existing)
-  // Your main saving logic (can remain private or internal)
+  private fun observeUserProfile() {
+    viewModelScope.launch {
+      repository.getUserProfile().collect { user ->
+        user?.let {
+          defaultDogName = it.dogName
+          // Päivitetään nykyinen sessio jos se on vielä tyhjä
+          _uiState.update { currentState ->
+            currentState.copy(
+              currentTrainingSession = currentState.currentTrainingSession?.copy(
+                dogName = it.dogName
+              )
+            )
+          }
+        }
+      }
+    }
+  }
+
   private fun saveTrainingSessionWithTerrainInternal(
     trainingSession: TrainingSession,
     pistoStates: List<PistoStateEntity>,
@@ -65,12 +76,10 @@ class TrainingSessionViewModel(
       setSaving(true)
       setError(null)
       try {
-        Log.d("ViewModelSave", "Before repo call. Session ID: ${trainingSession.id}, Desc: ${trainingSession.shortDescription}, StartFromLeft: ${trainingSession.startFromLeft}") 
-        // Call repository and get the saved session back (with its correct ID)
         val (savedSessionFromDb, savedTerrainFromDb) = repository.saveTrainingSessionWithTerrain(
-        trainingSession,
-        pistoStates,
-        terrain,
+          trainingSession,
+          pistoStates,
+          terrain,
           weather
         )
 
@@ -95,7 +104,6 @@ class TrainingSessionViewModel(
     }
   }
   
-  // Function to be called by the UI after the message has been shown
   fun saveMessageShown() {
     _uiState.update { currentState ->
       currentState.copy(saveSuccessMessage = false)
@@ -118,7 +126,6 @@ class TrainingSessionViewModel(
     val currentSession = currentState.currentTrainingSession
 
     if (currentSession != null) {
-      // Ensure the plan session has the current startFromLeft value
       val planSession = currentSession.copy(
         notes = null,
         overallRating = null,
@@ -126,7 +133,6 @@ class TrainingSessionViewModel(
         startFromLeft = currentState.startFromLeft 
       )
       val pistoEntities = convertToEntityStates()
-
       saveTrainingSessionWithTerrainInternal(planSession, pistoEntities, null)
     } else {
       setError("Cannot save plan: No current session.")
@@ -149,7 +155,7 @@ class TrainingSessionViewModel(
         notes = notes,
         overallRating = rating,
         difficultyRating = difficulty,
-        startFromLeft = currentState.startFromLeft // Ensure we use current UI state
+        startFromLeft = currentState.startFromLeft
       )
 
       val terrainDetails = Terrain(
@@ -175,8 +181,7 @@ class TrainingSessionViewModel(
     }
   }
 
-  fun getWeather(trainingLocation: String
-  ) {
+  fun getWeather(trainingLocation: String) {
     viewModelScope.launch {
       try {
         isLoadingWeather = true
@@ -193,14 +198,13 @@ class TrainingSessionViewModel(
     }
   }
 
-  // Initialize a new empty training session
   fun initializeEmptyTrainingSession() {
     _uiState.update {
       TrainingSessionUiState(
         currentTrainingSession = TrainingSession(
           dateMillis = System.currentTimeMillis(),
           shortDescription = "",
-          dogName = "Himpu",
+          dogName = defaultDogName,
           alarmType = "haukku",
           notes = null,
           overallRating = null,
@@ -254,8 +258,6 @@ class TrainingSessionViewModel(
   fun updateKiintoRulla(pistoIndex: Int, kiintoRulla: Boolean) {
     updateMMDetails(pistoIndex, kiintoRulla = kiintoRulla)
   }
-
-
 
   fun updateSelectedDate(dateMillis: Long) {
     _uiState.update { currentState ->
@@ -421,32 +423,27 @@ class TrainingSessionViewModel(
     sb.append("🔢 Pistot: ${state.selectedPistot} kpl\n")
     sb.append("\n--- Pistot ---\n")
 
-    val maxPisto = state.selectedPistot-1
-    for (i in 0..maxPisto) {
+    for (i in 0 until state.selectedPistot) {
       val pisto = state.pistoStates[i]
       sb.append("\n📍 Pisto ${i+1}: ")
       if (pisto == null) {
-        sb.append("Pistoa ei löydy\n")
+        sb.append("Oletus\n")
       } else {
         if (pisto.currentMode == PistoMode.TYHJA) {
           sb.append("Tyhjä\n")
           continue
         }
         if (pisto.currentMode == PistoMode.DEFAULT) {
-          sb.append("Ei täytetty\n")
+          sb.append("Ei valittu\n")
           continue
         }
-        if (pisto.currentMode == PistoMode.MM) {
-          if (!pisto.avut.isNullOrBlank()) sb.append("\n  - Avut: ${pisto.avut}\n")
-          if (!pisto.haukut.isNullOrBlank()) sb.append("  - Haukut: ${pisto.haukut}\n")
-          if (!pisto.irtorullanSijainti.isNullOrBlank()) sb.append(" - Irtorullan sijainti: ${pisto.irtorullanSijainti}\n")
-          if (!pisto.palkka.isNullOrBlank()) sb.append("  - Palkka: ${pisto.palkka}\n")
-          if (pisto.kiintoRulla == true) sb.append("  - Kiintorulla\n")
-          if (pisto.suoraPalkka) sb.append("  - Suorapalkka\n")
-          if (pisto.isClosed) sb.append("  - Umpipiilo\n")
-          if (pisto.control) sb.append("  - Koehallinta\n")
-          if (pisto.comeToMiddle) sb.append("  - Sisääntulo\n")
-        }
+        sb.append("Maalimies\n")
+        if (!pisto.avut.isNullOrBlank()) sb.append("  - Avut: ${pisto.avut}\n")
+        if (!pisto.haukut.isNullOrBlank()) sb.append("  - Haukut: ${pisto.haukut}\n")
+        if (!pisto.palkka.isNullOrBlank()) sb.append("  - Palkka: ${pisto.palkka}\n")
+        if (pisto.isClosed) sb.append("  - Umpipiilo\n")
+        if (pisto.control) sb.append("  - Koehallinta\n")
+        if (pisto.comeToMiddle) sb.append("  - Sisääntulo\n")
       }
     }
     

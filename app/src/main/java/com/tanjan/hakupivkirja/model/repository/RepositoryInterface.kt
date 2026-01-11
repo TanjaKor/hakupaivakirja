@@ -4,6 +4,7 @@ import com.tanjan.hakupivkirja.model.PistoStateEntity
 import com.tanjan.hakupivkirja.model.Terrain
 import com.tanjan.hakupivkirja.model.TrainingSession
 import com.tanjan.hakupivkirja.model.TrainingSessionWithPistoStates
+import com.tanjan.hakupivkirja.model.UserEntity
 import com.tanjan.hakupivkirja.model.WeatherEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -32,8 +33,9 @@ interface HakupivkirjaRepository {
   // Get complete yearly training data with terrain and weather
   suspend fun getYearlyTrainingData(year: Int): YearlyTrainingData
 
-//    // PistoState operations
-//  suspend fun insertAllPistoStates(pistoStates: List<PistoStateEntity>)
+  // User profile operations
+  fun getUserProfile(): Flow<UserEntity?>
+  suspend fun saveUserProfile(user: UserEntity)
 
   suspend fun saveTrainingSession(
     trainingSession: TrainingSession,

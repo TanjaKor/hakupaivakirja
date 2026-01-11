@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -97,12 +98,12 @@ fun SaveTrainingSession(
           TextButton(onClick = {
             trainingViewModel.saveTrainingPlan()
           }) {
-            Text(text = "Suunnitelma")
+            Text(text = "Suunnitelma", color = MaterialTheme.colorScheme.onSurface)
           }
           TextButton(onClick = {
             showTrainingDetails = true
           }) {
-            Text(text = "Treeni on tehty")
+            Text(text = "Treeni on tehty", color = MaterialTheme.colorScheme.onSurface)
           }
         }
         if (showTrainingDetails) {
@@ -212,7 +213,7 @@ fun TrainingDetails(
           Text(text = "${weather.main.temp}°C", modifier = Modifier.padding(0.dp))
           Image(
             painter = rememberAsyncImagePainter(model = "https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png"),
-            contentDescription = "${weather.weather[0].description}",
+            contentDescription = weather.weather[0].description,
             modifier = Modifier
               .size(40.dp)
               .padding(0.dp)

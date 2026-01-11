@@ -42,6 +42,7 @@ import com.tanjan.hakupivkirja.ui.components.ShareTrainingDialog
 import com.tanjan.hakupivkirja.ui.screens.HistoryScreen
 import com.tanjan.hakupivkirja.ui.screens.HomeScreen
 import com.tanjan.hakupivkirja.ui.screens.LoginScreen
+import com.tanjan.hakupivkirja.ui.screens.WelcomeScreen
 import com.tanjan.hakupivkirja.ui.theme.HakupäiväkirjaTheme
 import com.tanjan.hakupivkirja.ui.viewmodels.AuthViewModel
 import com.tanjan.hakupivkirja.ui.viewmodels.TrainingSessionViewModel
@@ -67,13 +68,31 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation(repository: HakupivkirjaRepository) {
   val authViewModel: AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
   val authUiState by authViewModel.uiState.collectAsState()
+  
+  // Ohjausmuuttujat tervetuloa- ja kirjautumissivujen välillä
+  var authScreen by remember { mutableStateOf("welcome") }
+  var isRegistering by remember { mutableStateOf(false) }
 
   HakupäiväkirjaTheme {
-    // Jos käyttäjä EI ole kirjautunut, näytetään LoginScreen
     if (authUiState.currentUser == null) {
-      LoginScreen(authViewModel = authViewModel)
+      when (authScreen) {
+        "welcome" -> WelcomeScreen(
+          onNavigateToLogin = { 
+            isRegistering = false
+            authScreen = "login" 
+          },
+          onNavigateToRegister = { 
+            isRegistering = true
+            authScreen = "login" 
+          },
+          onContinueAsGuest = { /* Lisää vieraana jatkaminen jos haluat */ }
+        )
+        "login" -> LoginScreen(
+            authViewModel = authViewModel,
+            initialRegisterMode = isRegistering
+        )
+      }
     } else {
-      // Jos käyttäjä ON kirjautunut, näytetään sovelluksen sisältö
       MainAppContent(repository, authViewModel)
     }
   }
@@ -130,6 +149,10 @@ fun MainAppContent(repository: HakupivkirjaRepository, authViewModel: AuthViewMo
           NavigationDrawerItem(
             label = { Text(label) },
             selected = route == currentRoute,
+            colors = NavigationDrawerItemDefaults.colors(
+              selectedContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+              selectedTextColor = MaterialTheme.colorScheme.primary,
+            ),
             onClick = {
               scope.launch { 
                 drawerState.close() 

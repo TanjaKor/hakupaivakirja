@@ -5,6 +5,8 @@ import com.tanjan.hakupivkirja.model.PistoStateEntity
 import com.tanjan.hakupivkirja.model.Terrain
 import com.tanjan.hakupivkirja.model.TrainingSession
 import com.tanjan.hakupivkirja.model.TrainingSessionWithPistoStates
+import com.tanjan.hakupivkirja.model.UserDao
+import com.tanjan.hakupivkirja.model.UserEntity
 import com.tanjan.hakupivkirja.model.WeatherEntity
 import com.tanjan.hakupivkirja.model.dao.TerrainDao
 import com.tanjan.hakupivkirja.model.dao.TrainingSessionDao
@@ -17,7 +19,8 @@ import kotlinx.coroutines.withContext
 class HakupivkirjaRepositoryImpl(
   private val trainingSessionDao: TrainingSessionDao,
   private val terrainDao: TerrainDao,
-  private val weatherDao: WeatherDao
+  private val weatherDao: WeatherDao,
+  private val userDao: UserDao
 ) : HakupivkirjaRepository {
 
   private val TAG = "HakupivakirjaRepo"
@@ -82,7 +85,6 @@ class HakupivkirjaRepositoryImpl(
     return withContext(Dispatchers.IO) {
       val (startMillis, endMillis) = getYearRange(year)
 
-      // Get sessions first
       val sessions = trainingSessionDao.getTrainingSessionsByYear(startMillis, endMillis).first()
       val totalTrainings = sessions.size
 
@@ -109,15 +111,11 @@ class HakupivkirjaRepositoryImpl(
         )
       }
 
-      // Get session IDs
       val sessionIds = sessions.map { it.id }
-
-      // Get terrain, weather and pisto data
       val terrainData = terrainDao.getTerrainForSessions(sessionIds)
       val weatherData = weatherDao.getWeatherForSessions(sessionIds)
       val pistoData = trainingSessionDao.getPistoStatesForSessions(sessionIds)
 
-      // Calculate statistics
       val statistics = calculateYearlyStatistics(sessions, terrainData, weatherData, pistoData)
 
       YearlyTrainingData(
@@ -132,13 +130,23 @@ class HakupivkirjaRepositoryImpl(
     }
   }
 
+  override fun getUserProfile(): Flow<UserEntity?> {
+    return userDao.getUser()
+  }
+
+  override suspend fun saveUserProfile(user: UserEntity) {
+    withContext(Dispatchers.IO) {
+      userDao.insertUser(user)
+    }
+  }
+
   private fun getYearRange(year: Int): Pair<Long, Long> {
     val calendar = java.util.Calendar.getInstance()
-    calendar.set(year, 0, 1, 0, 0, 0) // January 1st
+    calendar.set(year, 0, 1, 0, 0, 0)
     calendar.set(java.util.Calendar.MILLISECOND, 0)
     val startMillis = calendar.timeInMillis
 
-    calendar.set(year, 11, 31, 23, 59, 59) // December 31st
+    calendar.set(year, 11, 31, 23, 59, 59)
     calendar.set(java.util.Calendar.MILLISECOND, 999)
     val endMillis = calendar.timeInMillis
 
@@ -151,25 +159,21 @@ class HakupivkirjaRepositoryImpl(
     weatherData: List<WeatherEntity>,
     pistoData: List<PistoStateEntity>
   ): YearlyStatistics {
-    // Calculate average difficulty
     val difficulties = sessions.mapNotNull { it.difficultyRating }
     val averageDifficulty = if (difficulties.isNotEmpty()) {
       difficulties.average()
     } else null
 
-    // Calculate average rating
     val ratings = sessions.mapNotNull { it.overallRating }
     val averageRating = if (ratings.isNotEmpty()) {
       ratings.average()
     } else null
 
-    // Calculate average temperature
     val temperatures = weatherData.mapNotNull { it.temperatureCelsius }
     val averageTemperature = if (temperatures.isNotEmpty()) {
       temperatures.average()
     } else null
 
-    // Terrain distribution
     val terrainDistribution = if (terrainData.isNotEmpty()) {
       val validThicknessValues = terrainData.map { it.forestThickness }.filterNotNull()
       val validMoistureValues = terrainData.map { it.moistureLevel }.filterNotNull()
@@ -183,29 +187,25 @@ class HakupivkirjaRepositoryImpl(
       TerrainDistribution(0.0, 0.0, 0.0)
     }
 
-    // Weather conditions count
     val weatherConditions = weatherData
       .mapNotNull { it.weatherDescription }
       .groupingBy { it }
       .eachCount()
 
-    // Monthly breakdown
     val calendar = java.util.Calendar.getInstance()
     val monthlyBreakdown = sessions
       .groupBy { session ->
         calendar.timeInMillis = session.dateMillis
-        calendar.get(java.util.Calendar.MONTH) + 1 // 1-based month
+        calendar.get(java.util.Calendar.MONTH) + 1
       }
       .mapValues { it.value.size }
 
-    // --- TRACK LENGTH STATISTICS ---
     val trackLengths = sessions.map { it.trackLength.filter { char -> char.isDigit() }.toDoubleOrNull() ?: 0.0 }
     val averageTrackLength = if (trackLengths.isNotEmpty()) trackLengths.average() else null
     val trackLengthDistribution = sessions
       .groupingBy { it.trackLength }
       .eachCount()
 
-    // --- PISTO AMOUNT STATISTICS ---
     val pistosBySession = pistoData.groupBy { it.trainingSessionId }
     val pistoAmounts = sessions.map { session -> 
       pistosBySession[session.id]?.size ?: 0 
@@ -217,7 +217,6 @@ class HakupivkirjaRepositoryImpl(
       "8+" to pistoAmounts.count { it >= 8 }
     )
 
-    // --- TYHJÄ STATISTICS ---
     val tyhjaTrainingCount = sessions.count { session ->
       val sessionPistos = pistosBySession[session.id] ?: emptyList()
       sessionPistos.any { it.type == "Tyhja" }
@@ -252,7 +251,6 @@ class HakupivkirjaRepositoryImpl(
     weather: WeatherEntity?
   ): Triple<TrainingSession, Terrain?, WeatherEntity?> {
     return withContext(Dispatchers.IO) {
-      // Save session and get the ID
       val savedSession = trainingSessionDao.saveTrainingSession(trainingSession, pistoStates)
       val sessionId = savedSession.id
 
@@ -261,30 +259,26 @@ class HakupivkirjaRepositoryImpl(
         return@withContext Triple(savedSession, null, null)
       }
 
-      // Clear any existing terrain for this session first
       terrainDao.getTerrainBySessionId(sessionId)?.let { existingTerrain ->
         terrainDao.deleteTerrain(existingTerrain)
       }
 
-      // Clear any existing weather for this session first
       weatherDao.getWeatherBySessionId(sessionId)?.let { existingWeather ->
         weatherDao.deleteWeather(existingWeather)
       }
 
-      // Save new terrain if provided
       val savedTerrain = terrain?.let { newTerrain ->
         val terrainToSave = newTerrain.copy(
-          id = 0L, // Force new terrain (since we deleted the old one)
+          id = 0L,
           trainingSessionId = sessionId
         )
         val newTerrainId = terrainDao.upsertTerrain(terrainToSave)
         terrainToSave.copy(id = newTerrainId)
       }
 
-      // Save new weather if provided
       val savedWeather = weather?.let { newWeather ->
         val weatherToSave = newWeather.copy(
-          id = 0L, // Force new weather (since we deleted the old one)
+          id = 0L,
           trainingSessionId = sessionId
         )
         val newWeatherId = weatherDao.upsertWeather(weatherToSave)

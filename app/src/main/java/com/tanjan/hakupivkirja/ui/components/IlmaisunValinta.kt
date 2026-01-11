@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,13 +43,13 @@ fun IlmaisunValinta(
           onAlarmTypeChange("rulla")
           Log.d("IlmaisunValinta", "Ilmaisu on ${uiState.alarmType}")
         }) {
-          Text(text = "Rulla")
+          Text(text = "Rulla", color = MaterialTheme.colorScheme.onPrimary)
         }
         TextButton(onClick = {
           uiState.alarmType?.let { onAlarmTypeChange(it) } ?: onAlarmTypeChange("haukku")
           Log.d("IlmaisunValinta", "Ilmaisu on ${uiState.alarmType}")
         }) {
-          Text(text = "Haukku")
+          Text(text = "Haukku", color = MaterialTheme.colorScheme.onPrimary)
         }
       }
 

@@ -10,11 +10,13 @@ object RepositoryProvider {
       val trainingSessionDao = database.trainingSessionDao()
       val terrainDao = database.terrainDao()
       val weatherDao = database.weatherDao()
+      val userDao = database.userDao()
 
       HakupivkirjaRepositoryImpl(
         trainingSessionDao = trainingSessionDao,
         terrainDao = terrainDao,
-        weatherDao = weatherDao
+        weatherDao = weatherDao,
+        userDao = userDao
       )
     } catch (e: Exception) {
       throw RuntimeException("Failed to initialize repository. See Logcat for details.", e)
