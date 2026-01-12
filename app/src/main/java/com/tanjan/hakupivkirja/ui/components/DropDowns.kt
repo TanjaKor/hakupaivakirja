@@ -63,9 +63,9 @@ fun RadanPituusDropdown(
                     text = { Text(option) },
                     onClick = {
                         val newMaxPistot = when (option) {
-                            "100m" -> 3
-                            "200m" -> 7
-                            else -> 11
+                            "100m" -> 6
+                            "200m" -> 10
+                            else -> 14
                         }
                         onSelectionChange(option, newMaxPistot)
                         expanded = false

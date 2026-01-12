@@ -214,7 +214,7 @@ class TrainingSessionViewModel(
         ),
         pistoStates = emptyMap(),
         selectedPistot = 3,
-        maxPistot = 3,
+        maxPistot = 8, // Changed from 3 to 8 for 100m initialization
         totalPistoCount = 0,
         isLoading = false,
         isSaving = false,
